@@ -3,73 +3,160 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenJus — Bot jurídico open source</title>
+<title>OpenJus — O Direito brasileiro, aberto.</title>
+<meta name="description" content="Bot jurídico open source: legislação, processos do DataJud e prazos do CPC.">
 <style>
-:root{--bg:#0f1420;--card:#171e2e;--fg:#e8ecf4;--mut:#93a0b8;--ac:#c9a24b;--bd:#27314a}
-*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
-header{padding:56px 20px 24px;text-align:center}h1{margin:0;font-size:2.4rem}h1 span{color:var(--ac)}
-header p{color:var(--mut);max-width:640px;margin:12px auto}
-main{max-width:980px;margin:0 auto;padding:0 20px 60px;display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
-@media(max-width:480px){main{grid-template-columns:1fr}}
-section{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px}
-h2{margin:0 0 12px;font-size:1.1rem;color:var(--ac)}
-input,button,select{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid var(--bd);background:#0c111c;color:var(--fg);width:100%;margin:4px 0}
-button{background:var(--ac);color:#111;border:0;font-weight:600;cursor:pointer}
-.row{display:flex;gap:8px}pre{white-space:pre-wrap;background:#0c111c;border-radius:8px;padding:12px;font-size:.88rem;max-height:340px;overflow:auto;color:#cfd7e6}
-.aviso{grid-column:1/-1;text-align:center;color:var(--mut);font-size:.85rem}
-.layers li{margin:6px 0;color:var(--mut)}.layers b{color:var(--fg)}
-a{color:var(--ac)}
+:root{--ink:#0a0a0c;--ink2:#121216;--fg:#f2efe8;--mut:#8d8a84;--ac:#d9b25f;--bd:#26262c;--ease:cubic-bezier(.77,0,.18,1);
+--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0}html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--fg);font:16px/1.6 var(--sans);overflow-x:hidden}
+a{color:inherit}::selection{background:var(--ac);color:#000}
+:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+/* nav */
+nav{position:fixed;inset:0 0 auto;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:22px 4vw;mix-blend-mode:difference}
+nav b{font:700 1.1rem var(--serif);letter-spacing:.04em}nav div{display:flex;gap:28px;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
+nav a{text-decoration:none}nav a:hover{opacity:.6}
+@media(max-width:640px){nav div a:not(:last-child){display:none}}
+/* hero slider */
+.hero{position:relative;height:100svh;min-height:560px;overflow:hidden}
+.slide{position:absolute;inset:0;clip-path:inset(0 0 100% 0);will-change:clip-path}
+.slide.on{clip-path:inset(0);z-index:2}.slide.in{z-index:3;animation:wipe 1.15s var(--ease) forwards}
+.slide.out{z-index:2;animation:push 1.15s var(--ease) forwards}
+@keyframes wipe{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0)}}
+@keyframes push{from{transform:translateY(0) scale(1)}to{transform:translateY(-8%) scale(1.08)}}
+.slide svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slide .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.05) 40%,rgba(0,0,0,.75))}
+.hero h1{position:absolute;z-index:10;left:4vw;right:4vw;bottom:15vh;font:400 clamp(2.6rem,9.5vw,9.5rem)/.92 var(--serif);letter-spacing:-.03em;pointer-events:none}
+.hero h1 em{color:var(--ac);font-style:italic}
+.hero h1 span{display:block;overflow:hidden}.hero h1 span i{display:block;font-style:inherit;transform:translateY(105%);animation:up 1.2s var(--ease) .3s forwards}
+.hero h1 span:nth-child(2) i{animation-delay:.45s}
+@keyframes up{to{transform:none}}
+.hud{position:absolute;z-index:10;left:4vw;right:4vw;bottom:5vh;display:flex;align-items:center;gap:20px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
+.bar{flex:1;height:1px;background:rgba(255,255,255,.25);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0;background:var(--fg);transform-origin:left;transform:scaleX(0)}
+.bar i.run{animation:fill 5.5s linear forwards}@keyframes fill{to{transform:scaleX(1)}}
+.hud button{background:none;border:1px solid rgba(255,255,255,.35);color:var(--fg);width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1rem;transition:.3s}
+.hud button:hover{background:var(--fg);color:#000}
+#cap{min-width:190px}
+/* marquee */
+.mq{border-block:1px solid var(--bd);overflow:hidden;padding:22px 0;white-space:nowrap}
+.mq div{display:inline-block;animation:mq 28s linear infinite;font:italic 400 clamp(1.6rem,4vw,3.2rem) var(--serif);color:var(--mut)}
+.mq b{color:var(--ac);font-style:normal;margin:0 .6em}@keyframes mq{to{transform:translateX(-50%)}}
+/* sections */
+section{padding:14vh 4vw;position:relative}
+.tag{font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ac);margin-bottom:22px;display:block}
+h2{font:400 clamp(2rem,5.5vw,5rem)/1 var(--serif);letter-spacing:-.02em;max-width:16ch}
+.lead{color:var(--mut);max-width:52ch;margin-top:26px;font-size:1.08rem}
+.rv{opacity:0;transform:translateY(46px);transition:opacity 1s var(--ease),transform 1s var(--ease)}.rv.v{opacity:1;transform:none}
+.layers{display:grid;gap:0;margin-top:8vh;border-top:1px solid var(--bd)}
+.layer{display:grid;grid-template-columns:90px 1fr 1.3fr;gap:24px;padding:34px 0;border-bottom:1px solid var(--bd);align-items:baseline;transition:padding .5s var(--ease),background .5s}
+.layer:hover{padding-inline:20px;background:var(--ink2)}
+.layer small{color:var(--ac);font:italic 1.2rem var(--serif)}.layer h3{font:400 clamp(1.5rem,3vw,2.4rem) var(--serif)}.layer p{color:var(--mut)}
+@media(max-width:760px){.layer{grid-template-columns:50px 1fr}.layer p{grid-column:2}}
+/* tools */
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));margin-top:8vh;border-left:1px solid var(--bd);border-top:1px solid var(--bd)}
+.card{padding:34px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}.card h3{font:400 1.7rem var(--serif);margin-bottom:6px}.card>p{color:var(--mut);font-size:.92rem;margin-bottom:18px}
+input,button.go{font:inherit;color:var(--fg);background:transparent;border:0;border-bottom:1px solid #444;padding:12px 0;width:100%;margin:6px 0 10px;border-radius:0}
+input:focus{outline:0;border-color:var(--ac)}input[type=checkbox]{width:auto;margin-right:8px}label{font-size:.9rem;color:var(--mut)}
+button.go{width:auto;margin-top:12px;border:1px solid var(--ac);color:var(--ac);padding:12px 26px;border-radius:99px;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;font-size:.78rem;transition:.35s}
+button.go:hover{background:var(--ac);color:#000}.row{display:flex;gap:14px;align-items:end}.row input{flex:1}
+pre{white-space:pre-wrap;font:.86rem/1.55 ui-monospace,Menlo,monospace;color:#cfcbc2;margin-top:18px;max-height:300px;overflow:auto}
+.wide{grid-column:1/-1}
+/* footer */
+footer{padding:14vh 4vw 6vh;border-top:1px solid var(--bd)}
+footer h2{max-width:none;font-size:clamp(3rem,13vw,13rem);line-height:.9}footer h2 a{text-decoration:none;transition:.4s}footer h2 a:hover{color:var(--ac);font-style:italic}
+footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
+/* cursor */
+#cur{position:fixed;width:14px;height:14px;border-radius:50%;background:#fff;pointer-events:none;z-index:99;mix-blend-mode:difference;transform:translate(-50%,-50%);transition:width .3s,height .3s;display:none}
+#cur.big{width:64px;height:64px}@media(hover:hover) and (pointer:fine){#cur{display:block}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}.mq div{animation:none}.rv{opacity:1;transform:none}.hero h1 span i{transform:none}}
 </style>
 </head>
 <body>
-<header>
-  <h1>Open<span>Jus</span> ⚖️</h1>
-  <p>Legislação (ctresb/leis), processos via DataJud/CNJ, servidor MCP e cálculo de prazos do CPC — tudo open source.</p>
+<div id="cur"></div>
+<nav><b>OpenJus</b><div><a href="#camadas">Camadas</a><a href="#ferramentas">Ferramentas</a><a href="https://github.com/thiagollipe-web/open_jus">GitHub</a></div></nav>
+
+<header class="hero" id="hero" aria-label="Apresentação">
+  <!-- Slide 1: balança -->
+  <div class="slide on" data-cap="01 — Legislação">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
+      <radialGradient id="a" cx="70%" cy="35%" r="80%"><stop offset="0" stop-color="#6b4a1a"/><stop offset=".5" stop-color="#1c1409"/><stop offset="1" stop-color="#050505"/></radialGradient>
+      <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d98b"/><stop offset="1" stop-color="#a77a26"/></linearGradient></defs>
+      <rect width="1600" height="900" fill="url(#a)"/>
+      <g stroke="url(#g1)" stroke-width="5" fill="none" opacity=".95"><path d="M1060 190v500M900 700h320M1060 190H640M1060 190h420"/><path d="M640 190l-120 300h240zM1480 190l-120 300h240z"/><circle cx="1060" cy="190" r="22" fill="#d9b25f"/>
+      <path d="M520 490c0 70 120 70 120 0M760 490c0 70-120 70-120 0" stroke-width="3"/><path d="M1360 490c0 70 120 70 120 0M1600 490c0 70-120 70-120 0" transform="translate(-60 0)" stroke-width="3"/></g>
+      <g fill="none" stroke="#d9b25f" stroke-opacity=".12">
+        <circle cx="1060" cy="190" r="260"/><circle cx="1060" cy="190" r="420"/><circle cx="1060" cy="190" r="600"/></g></svg><div class="veil"></div></div>
+  <!-- Slide 2: colunas -->
+  <div class="slide" data-cap="02 — Processos">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
+      <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16243a"/><stop offset="1" stop-color="#05070b"/></linearGradient>
+      <linearGradient id="c" x1="0" x2="1"><stop offset="0" stop-color="#e9e4d6" stop-opacity=".95"/><stop offset="1" stop-color="#8f8a7a" stop-opacity=".9"/></linearGradient></defs>
+      <rect width="1600" height="900" fill="url(#b)"/>
+      <path d="M380 330L800 130l420 200z" fill="url(#c)" opacity=".9"/><rect x="360" y="340" width="880" height="30" fill="url(#c)"/>
+      <g fill="url(#c)"><rect x="420" y="390" width="70" height="360"/><rect x="580" y="390" width="70" height="360"/><rect x="740" y="390" width="70" height="360"/><rect x="900" y="390" width="70" height="360"/><rect x="1060" y="390" width="70" height="360"/></g>
+      <rect x="340" y="750" width="920" height="26" fill="url(#c)"/><rect x="310" y="776" width="980" height="34" fill="url(#c)"/>
+      <g fill="#fff" opacity=".07"><rect x="1300" y="100" width="4" height="700"/><rect x="1380" y="160" width="4" height="640"/><rect x="1460" y="60" width="4" height="740"/></g></svg><div class="veil"></div></div>
+  <!-- Slide 3: dados -->
+  <div class="slide" data-cap="03 — Prazos & IA aberta">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
+      <linearGradient id="d" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1a0b2e"/><stop offset=".6" stop-color="#0b1a2c"/><stop offset="1" stop-color="#241505"/></linearGradient></defs>
+      <rect width="1600" height="900" fill="url(#d)"/>
+      <g stroke="#d9b25f" stroke-opacity=".35" fill="none"><path d="M0 700C300 520 520 800 800 600S1300 380 1600 520"/><path d="M0 760C320 600 560 860 840 660S1320 450 1600 580"/><path d="M0 640C280 460 480 740 760 540S1280 310 1600 460"/></g>
+      <g fill="#f2efe8" opacity=".9"><circle cx="420" cy="410" r="7"/><circle cx="800" cy="520" r="7"/><circle cx="1180" cy="410" r="7"/><circle cx="1420" cy="480" r="7"/><circle cx="620" cy="560" r="5"/></g>
+      <g stroke="#f2efe8" stroke-opacity=".3"><path d="M420 410L620 560L800 520L1180 410L1420 480"/></g>
+      <g fill="#d9b25f" opacity=".85" font-family="Georgia,serif" font-size="150" font-style="italic"><text x="980" y="300">§</text><text x="240" y="260" font-size="90" opacity=".5">219</text></g></svg><div class="veil"></div></div>
+
+  <h1><span><i>O Direito</i></span><span><i>brasileiro, <em>aberto.</em></i></span></h1>
+  <div class="hud"><span id="cap">01 — Legislação</span><div class="bar"><i id="prog"></i></div><button id="prev" aria-label="Anterior">←</button><button id="next" aria-label="Próximo">→</button></div>
 </header>
-<main>
-  <section style="grid-column:1/-1">
-    <h2>🤖 Pergunte ao bot</h2>
-    <pre id="b-log" style="min-height:90px">Grátis, sem IA paga. Ex.: "Intimado em 07/03/2025, prazo de 15 dias úteis" · "o que significa trânsito em julgado?" · número CNJ · pergunta sobre lei</pre>
-    <div class="row"><input id="b-q" placeholder="Sua pergunta jurídica" onkeydown="if(event.key==='Enter')bot()"><button style="width:auto" onclick="bot()">Enviar</button></div>
-  </section>
-  <section>
-    <h2>⏱ Calculadora de prazos (CPC 219, 220, 224)</h2>
-    <label>Data da intimação/publicação<input id="p-ini" type="date"></label>
-    <label>Prazo (dias)<input id="p-dias" type="number" value="15" min="1"></label>
-    <label><input id="p-uteis" type="checkbox" checked style="width:auto"> Dias úteis (art. 219)</label>
-    <button onclick="prazo()">Calcular</button><pre id="p-out"></pre>
-  </section>
-  <section>
-    <h2>📂 Consulta de processo (número CNJ)</h2>
-    <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO">
-    <button onclick="processo()">Consultar no DataJud</button><pre id="c-out"></pre>
-  </section>
-  <section>
-    <h2>📚 Busca na legislação</h2>
-    <div class="row"><input id="l-q" placeholder="ex.: prazo contestação dias úteis"><button style="width:auto" onclick="leis()">Buscar</button></div>
-    <pre id="l-out"></pre>
-  </section>
-  <section>
-    <h2>🗣 Juridiquês → português</h2>
-    <div class="row"><input id="t-q" placeholder="ex.: conclusos para despacho"><button style="width:auto" onclick="traduzir()">Traduzir</button></div>
-    <pre id="t-out"></pre>
-  </section>
-  <section style="grid-column:1/-1">
-    <h2>As 4 camadas</h2>
-    <ul class="layers">
-      <li><b>Contexto</b> — índice FTS5 da legislação + consulta DataJud.</li>
-      <li><b>Memória</b> — snapshots de andamentos; sigilo e CPFs protegidos (LGPD / Res. CNJ 331).</li>
-      <li><b>Referências</b> — conector certo por caso de uso (DataJUD_API_CALLER, api_cnj, mcp-juridico-brasil, tjsp, crawler-jus).</li>
-      <li><b>Linguagem</b> — tradução de juridiquês e cálculo de prazos offline.</li>
-    </ul>
-  </section>
-  <p class="aviso">Informativo; não substitui advogado. Código MIT no GitHub.</p>
-</main>
+
+<div class="mq" aria-hidden="true"><div>Legislação <b>✦</b> DataJud <b>✦</b> CPC 219 · 220 · 224 <b>✦</b> MCP <b>✦</b> LGPD <b>✦</b> Open source <b>✦</b> Legislação <b>✦</b> DataJud <b>✦</b> CPC 219 · 220 · 224 <b>✦</b> MCP <b>✦</b> LGPD <b>✦</b> Open source <b>✦</b></div></div>
+
+<section id="camadas">
+  <span class="tag rv">Arquitetura</span>
+  <h2 class="rv">Quatro camadas. Zero caixa-preta.</h2>
+  <p class="lead rv">Regras determinísticas fazem a conta; o texto vem sempre da fonte. Sem IA paga, sem chave obrigatória.</p>
+  <div class="layers">
+    <div class="layer rv"><small>I</small><h3>Contexto</h3><p>Acervo ctresb/leis indexado por artigo e consulta ao DataJud por número CNJ.</p></div>
+    <div class="layer rv"><small>II</small><h3>Memória</h3><p>Snapshots de andamentos. Segredo de justiça não é gravado; CPFs mascarados (LGPD).</p></div>
+    <div class="layer rv"><small>III</small><h3>Referências</h3><p>Sabe qual conector do ecossistema usar: lote, pandas, MCP, e-SAJ.</p></div>
+    <div class="layer rv"><small>IV</small><h3>Linguagem</h3><p>Traduz juridiquês e calcula prazos pelo CPC com calendário forense offline.</p></div>
+  </div>
+</section>
+
+<section id="ferramentas">
+  <span class="tag rv">Experimente</span>
+  <h2 class="rv">Ferramentas ao vivo.</h2>
+  <div class="tools">
+    <div class="card wide rv"><h3>Pergunte ao bot</h3><p>Grátis e sem IA paga. Prazos, número CNJ, termos e leis.</p>
+      <pre id="b-log">Ex.: "Intimado em 07/03/2025, prazo de 15 dias úteis" · "o que significa trânsito em julgado?"</pre>
+      <div class="row"><input id="b-q" placeholder="Digite sua pergunta" aria-label="Pergunta" onkeydown="if(event.key==='Enter')bot()"><button class="go" onclick="bot()">Enviar</button></div></div>
+    <div class="card rv"><h3>Prazos do CPC</h3><p>Arts. 219, 220 e 224. Roda no seu navegador.</p>
+      <label>Intimação/publicação<input id="p-ini" type="date"></label><label>Dias<input id="p-dias" type="number" value="15" min="1"></label>
+      <label><input id="p-uteis" type="checkbox" checked>Dias úteis</label><br><button class="go" onclick="prazo()">Calcular</button><pre id="p-out"></pre></div>
+    <div class="card rv"><h3>Processo</h3><p>Número CNJ → DataJud (API pública).</p>
+      <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ"><button class="go" onclick="processo()">Consultar</button><pre id="c-out"></pre></div>
+    <div class="card rv"><h3>Legislação</h3><p>Busca no acervo indexado.</p>
+      <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><pre id="l-out"></pre></div>
+    <div class="card rv"><h3>Juridiquês → português</h3><p>Entenda a movimentação.</p>
+      <input id="t-q" placeholder="ex.: conclusos para despacho" aria-label="Movimento"><button class="go" onclick="traduzir()">Traduzir</button><pre id="t-out"></pre></div>
+  </div>
+</section>
+
+<footer>
+  <h2><a href="https://github.com/thiagollipe-web/open_jus">Open source.<br>Contribua →</a></h2>
+  <p>Informativo; não substitui advogado. Código MIT. Gostou? Há uma chave Pix no README do repositório para apoiar o projeto.</p>
+</footer>
+
 <script>
 const $=id=>document.getElementById(id);
 const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
 async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
-// Prazo calculado no navegador (espelha src/openjus/prazos.py; funciona sem API).
+const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
+const leis=()=>call('l-out','/api/leis?vigentes=true&q='+encodeURIComponent($('l-q').value));
+const traduzir=()=>call('t-out','/api/traduzir?movimento='+encodeURIComponent($('t-q').value));
+// Prazo no navegador (espelha src/openjus/prazos.py; funciona sem API)
 const D=864e5,iso=d=>d.toISOString().slice(0,10),add=(d,n)=>new Date(d.getTime()+n*D);
 function pascoa(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),dia=(h+l-7*m+114)%31+1;return new Date(Date.UTC(y,mo-1,dia))}
 function feriados(y){const p=pascoa(y),s=new Set([[1,1],[4,21],[5,1],[9,7],[10,12],[11,2],[11,15],[11,20],[12,25]].map(([m,d])=>iso(new Date(Date.UTC(y,m-1,d)))));[-48,-47,-2,60].forEach(n=>s.add(iso(add(p,n))));return s}
@@ -84,20 +171,33 @@ function prazo(){
   else{c=add(ini,1);v=proxUtil(add(ini,dias))}
   show('p-out',{inicio_contagem:iso(c),vencimento:iso(v),fundamentos:['CPC 224: exclui o dia do começo, inclui o do vencimento','CPC 219: dias úteis','CPC 220: recesso 20/12–20/01'],aviso:'Confira feriados locais e a data efetiva da intimação.'});
 }
-const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
-const leis=()=>call('l-out','/api/leis?vigentes=true&q='+encodeURIComponent($('l-q').value));
-const traduzir=()=>call('t-out','/api/traduzir?movimento='+encodeURIComponent($('t-q').value));
 const hist=[];
 async function bot(){
   const q=$('b-q').value.trim();if(!q)return;$('b-q').value='';hist.push({role:'user',content:q});
-  $('b-log').textContent+='\n\n🧑 '+q+'\n⏳ ...';
+  const L=$('b-log');L.textContent+='\n\n🧑 '+q+'\n⏳ ...';
   try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensagens:hist})});
     const d=await r.json();if(!r.ok)throw new Error(d.detail||r.status);
-    hist.push({role:'assistant',content:d.resposta});
-    $('b-log').textContent=$('b-log').textContent.replace(/\n⏳ \.\.\.$/,'')+'\n🤖 '+d.resposta+(d.ferramentas.length?'\n   (ferramentas: '+d.ferramentas.join(', ')+')':'');
-  }catch(e){hist.pop();$('b-log').textContent=$('b-log').textContent.replace(/\n⏳ \.\.\.$/,'')+'\n⚠️ '+e.message+' (API offline? rode openjus-api)'}
+    hist.push({role:'assistant',content:d.resposta});L.textContent=L.textContent.replace(/\n⏳ \.\.\.$/,'')+'\n🤖 '+d.resposta;
+  }catch(e){hist.pop();L.textContent=L.textContent.replace(/\n⏳ \.\.\.$/,'')+'\n⚠️ '+e.message+' (API offline? rode openjus-api)'}
+  L.scrollTop=L.scrollHeight;
 }
 $('p-ini').valueAsDate=new Date();
+// Slider com wipe (clip-path) + push parallax
+(()=>{
+  const S=[...document.querySelectorAll('.slide')],cap=$('cap'),prog=$('prog');let i=0,t,busy=false;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function run(){prog.classList.remove('run');void prog.offsetWidth;prog.classList.add('run');clearTimeout(t);if(!reduce)t=setTimeout(()=>go(i+1),5500)}
+  function go(n){if(busy)return;n=(n+S.length)%S.length;if(n===i)return;busy=true;
+    const a=S[i],b=S[n];b.classList.add('in');a.classList.add('out');cap.textContent=b.dataset.cap;
+    setTimeout(()=>{a.classList.remove('on','out');b.classList.remove('in');b.classList.add('on');i=n;busy=false;run()},1150)}
+  $('next').onclick=()=>go(i+1);$('prev').onclick=()=>go(i-1);run();
+})();
+// Reveal on scroll
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.rv').forEach((el,k)=>{el.style.transitionDelay=(k%4)*80+'ms';io.observe(el)});
+// Cursor
+const cur=$('cur');addEventListener('pointermove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px'});
+document.querySelectorAll('a,button,input,.layer').forEach(el=>{el.addEventListener('pointerenter',()=>cur.classList.add('big'));el.addEventListener('pointerleave',()=>cur.classList.remove('big'))});
 </script>
 </body>
 </html>
