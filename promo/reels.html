@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>OpenJus — vídeo vertical (Reels/TikTok)</title>
+<meta name="viewport" content="width=1080">
+<style>
+/* Vídeo 1080x1920 (9:16), 19 s. Abra no navegador para ver; render em MP4: promo/render.js */
+:root{--ink:#0a0a0c;--fg:#f2efe8;--mut:#9a968e;--ac:#d9b25f;--e:cubic-bezier(.77,0,.18,1);--serif:"Iowan Old Style","Palatino Linotype",Georgia,"DejaVu Serif",serif;--sans:system-ui,"Segoe UI",Roboto,"DejaVu Sans",sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--ink)}
+body{color:var(--fg);font-family:var(--sans)}
+.stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:radial-gradient(120% 70% at 70% 25%,#3a2a10 0%,#120d06 45%,#050505 100%)}
+.glow{position:absolute;width:1400px;height:1400px;left:-160px;top:200px;border-radius:50%;background:radial-gradient(circle,rgba(217,178,95,.22),transparent 60%);animation:drift 19s linear both}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(-120px,380px) scale(1.25)}}
+.rings{position:absolute;inset:0;opacity:.12}
+.top{position:absolute;top:120px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center;font:600 34px var(--serif);letter-spacing:.02em}
+.top small{font:500 22px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--ac)}
+.bar{position:absolute;top:84px;left:80px;right:80px;height:4px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden}
+.bar i{position:absolute;inset:0;background:var(--ac);transform-origin:left;animation:fill 19s linear both}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+.scene{position:absolute;inset:0;padding:0 80px;display:flex;flex-direction:column;justify-content:center;
+  animation:sIn .8s var(--e) var(--a) both,sOut .7s var(--e) var(--b) forwards}
+@keyframes sIn{from{clip-path:inset(100% 0 0 0);transform:translateY(80px)}to{clip-path:inset(0);transform:none}}
+@keyframes sOut{to{clip-path:inset(0 0 100% 0);transform:translateY(-120px);opacity:0}}
+.up{display:block;overflow:hidden}.up>span{display:block;animation:up .9s var(--e) var(--d) both}
+@keyframes up{from{transform:translateY(110%)}to{transform:none}}
+.fade{animation:fade .7s var(--e) var(--d) both}@keyframes fade{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+h1{font:400 158px/.95 var(--serif);letter-spacing:-.03em}
+h1 em,h2 em{color:var(--ac);font-style:italic}
+h2{font:400 104px/1 var(--serif);letter-spacing:-.02em}
+.lead{font-size:46px;line-height:1.35;color:#d8d3c8;margin-top:50px;max-width:16em}
+.tag{font:600 26px var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--ac);margin-bottom:40px}
+
+/* balança desenhada */
+.scale{width:520px;height:330px;margin-bottom:70px}
+.scale path,.scale line{stroke:var(--ac);stroke-width:7;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1200;animation:draw 1.6s var(--e) var(--d) both}
+@keyframes draw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+.scale circle{fill:var(--ac);animation:pop .5s var(--e) var(--d) both}
+
+/* chat */
+.card{background:rgba(20,20,26,.88);border:2px solid #2a2a33;border-radius:44px;padding:56px 48px;display:flex;flex-direction:column;gap:30px;box-shadow:0 40px 120px rgba(0,0,0,.5)}
+.card .head{display:flex;align-items:center;gap:20px;font:600 34px var(--serif);padding-bottom:26px;border-bottom:2px solid #2a2a33}
+.dot{width:18px;height:18px;border-radius:50%;background:#7fd093;box-shadow:0 0 18px #7fd093}
+.msg{max-width:88%;padding:30px 36px;border-radius:38px;font-size:42px;line-height:1.35;animation:pop .55s var(--e) var(--d) both}
+.u{align-self:flex-end;background:var(--ac);color:#111;border-bottom-right-radius:10px}
+.b{align-self:flex-start;background:#1d1d24;border:2px solid #2f2f38;border-bottom-left-radius:10px}
+.b b{display:block;font:400 76px/1.05 var(--serif);color:var(--ac);margin:12px 0 6px}
+.b small{display:block;font-size:30px;color:var(--mut);margin-top:12px}
+@keyframes pop{from{opacity:0;transform:translateY(30px) scale(.94)}to{opacity:1;transform:none}}
+.typing{align-self:flex-start;display:flex;gap:12px;padding:30px 36px;background:#1d1d24;border:2px solid #2f2f38;border-radius:38px;border-bottom-left-radius:10px;
+  animation:pop .4s var(--e) var(--d) both,gone .2s linear var(--g) forwards}
+@keyframes gone{to{opacity:0;height:0;padding:0;margin:-15px 0;border-width:0}}
+.typing i{width:16px;height:16px;border-radius:50%;background:var(--mut);animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.2}}
+
+/* lista */
+.list{display:flex;flex-direction:column;gap:34px;margin-top:70px}
+.item{display:flex;align-items:center;gap:34px;padding:34px 40px;border:2px solid #2a2a33;border-radius:30px;background:rgba(20,20,26,.7);font-size:46px;animation:slide .7s var(--e) var(--d) both}
+.item b{flex:none;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:#111;font:700 38px var(--serif)}
+.item span small{display:block;font-size:30px;color:var(--mut);margin-top:4px}
+@keyframes slide{from{opacity:0;transform:translateX(120px)}to{opacity:1;transform:none}}
+
+/* CTA */
+.logo{width:240px;height:240px;border-radius:56px;margin-bottom:60px;animation:pop .8s var(--e) var(--d) both;box-shadow:0 30px 90px rgba(217,178,95,.25)}
+.url{display:inline-block;margin-top:56px;padding:30px 44px;border-radius:999px;background:var(--ac);color:#111;font:600 40px var(--sans);animation:pop .7s var(--e) var(--d) both}
+.pills{display:flex;gap:20px;flex-wrap:wrap;margin-top:44px}
+.pills span{padding:20px 32px;border:2px solid #3a3a44;border-radius:999px;font-size:34px;color:#d8d3c8;animation:fade .6s var(--e) var(--d) both}
+.center{align-items:center;text-align:center}.center .pills{justify-content:center}
+.pulse{animation:pop .7s var(--e) var(--d) both,pulse 1.6s ease-in-out calc(var(--d) + .8s) infinite}
+@keyframes pulse{50%{transform:scale(1.05)}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="glow"></div>
+  <svg class="rings" viewBox="0 0 1080 1920" aria-hidden="true"><g fill="none" stroke="#d9b25f"><circle cx="760" cy="520" r="300"/><circle cx="760" cy="520" r="520"/><circle cx="760" cy="520" r="760"/></g></svg>
+  <div class="bar"><i></i></div>
+  <div class="top"><span>OpenJus</span><small>grátis · open source</small></div>
+
+  <!-- 1. Gancho (0–3.4s) -->
+  <section class="scene" style="--a:0s;--b:3.2s">
+    <svg class="scale" viewBox="-30 0 590 330" aria-hidden="true" style="--d:.2s">
+      <line x1="260" y1="40" x2="260" y2="300" style="--d:.2s"/><line x1="170" y1="305" x2="350" y2="305" style="--d:.5s"/>
+      <line x1="40" y1="70" x2="480" y2="70" style="--d:.35s"/>
+      <path d="M40 70 L-10 190 H90 Z M480 70 L430 190 H530 Z" transform="translate(10 0)" style="--d:.6s"/>
+      <path d="M0 190 a50 30 0 0 0 100 0 M420 190 a50 30 0 0 0 100 0" transform="translate(10 0)" style="--d:.8s"/>
+      <circle cx="260" cy="40" r="16" style="--d:.9s"/>
+    </svg>
+    <h1><span class="up"><span style="--d:.4s">Prazo</span></span><span class="up"><span style="--d:.55s"><em>vencendo?</em></span></span></h1>
+    <p class="lead fade" style="--d:1.3s">Descubra a data certa em 2 segundos. Sem cadastro.</p>
+  </section>
+
+  <!-- 2. Chat: prazo (3.4–8.4s) -->
+  <section class="scene" style="--a:3.3s;--b:8.2s">
+    <p class="tag fade" style="--d:3.6s">Calculadora de prazos · CPC</p>
+    <div class="card">
+      <div class="head"><span class="dot"></span>Pergunte ao bot</div>
+      <div class="msg u" style="--d:4.0s">Fui intimado em 07/03/2025. Prazo de 15 dias úteis. Quando vence?</div>
+      <div class="typing" style="--d:4.8s;--g:5.9s"><i></i><i></i><i></i></div>
+      <div class="msg b" style="--d:6.0s">Vence em<b>28/03/2025</b>Começa a contar em 10/03.<small>Base: CPC arts. 219, 220 e 224</small></div>
+    </div>
+  </section>
+
+  <!-- 3. Chat: termo (8.4–11.8s) -->
+  <section class="scene" style="--a:8.3s;--b:11.6s">
+    <p class="tag fade" style="--d:8.6s">Juridiquês → português</p>
+    <div class="card">
+      <div class="head"><span class="dot"></span>Pergunte ao bot</div>
+      <div class="msg u" style="--d:8.9s">O que significa “trânsito em julgado”?</div>
+      <div class="typing" style="--d:9.5s;--g:10.2s"><i></i><i></i><i></i></div>
+      <div class="msg b" style="--d:10.3s">A decisão <b style="font-size:58px">não cabe mais recurso.</b>Ela se tornou definitiva.</div>
+    </div>
+  </section>
+
+  <!-- 4. Recursos (11.8–15s) -->
+  <section class="scene" style="--a:11.7s;--b:14.8s">
+    <h2><span class="up"><span style="--d:11.9s">Tudo num</span></span><span class="up"><span style="--d:12.05s"><em>só lugar.</em></span></span></h2>
+    <div class="list">
+      <div class="item" style="--d:12.4s"><b>1</b><span>Prazos do CPC<small>dias úteis, feriados e recesso</small></span></div>
+      <div class="item" style="--d:12.7s"><b>2</b><span>Consulta de processos<small>número CNJ · DataJud</small></span></div>
+      <div class="item" style="--d:13.0s"><b>3</b><span>Leis e termos jurídicos<small>explicados em português simples</small></span></div>
+      <div class="item" style="--d:13.3s"><b>4</b><span>IA grátis que aprende<small>e funciona no celular</small></span></div>
+    </div>
+  </section>
+
+  <!-- 5. CTA (15–19s) -->
+  <section class="scene center" style="--a:14.9s;--b:99s">
+    <img class="logo" src="../site/icon-512.png" alt="" style="--d:15.1s">
+    <h2><span class="up"><span style="--d:15.4s">OpenJus</span></span></h2>
+    <p class="lead fade" style="--d:15.8s;margin-top:30px">O Direito brasileiro, <em style="color:var(--ac)">aberto.</em></p>
+    <span class="url pulse" style="--d:16.2s">thiagollipe-web.github.io/open_jus</span>
+    <div class="pills"><span style="--d:16.6s">100% grátis</span><span style="--d:16.8s">Instale no celular</span><span style="--d:17.0s">Open source</span></div>
+  </section>
+</div>
+<script>
+// Preview em loop no navegador; no render (?render=1) o tempo é controlado pelo script.
+if(!location.search.includes('render'))setTimeout(()=>location.reload(),19500);
+</script>
+</body>
+</html>
