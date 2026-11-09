@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenJus — Bot jurídico open source</title>
+<style>
+:root{--bg:#0f1420;--card:#171e2e;--fg:#e8ecf4;--mut:#93a0b8;--ac:#c9a24b;--bd:#27314a}
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+header{padding:56px 20px 24px;text-align:center}h1{margin:0;font-size:2.4rem}h1 span{color:var(--ac)}
+header p{color:var(--mut);max-width:640px;margin:12px auto}
+main{max-width:980px;margin:0 auto;padding:0 20px 60px;display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+@media(max-width:480px){main{grid-template-columns:1fr}}
+section{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px}
+h2{margin:0 0 12px;font-size:1.1rem;color:var(--ac)}
+input,button,select{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid var(--bd);background:#0c111c;color:var(--fg);width:100%;margin:4px 0}
+button{background:var(--ac);color:#111;border:0;font-weight:600;cursor:pointer}
+.row{display:flex;gap:8px}pre{white-space:pre-wrap;background:#0c111c;border-radius:8px;padding:12px;font-size:.88rem;max-height:340px;overflow:auto;color:#cfd7e6}
+.aviso{grid-column:1/-1;text-align:center;color:var(--mut);font-size:.85rem}
+.layers li{margin:6px 0;color:var(--mut)}.layers b{color:var(--fg)}
+a{color:var(--ac)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Open<span>Jus</span> ⚖️</h1>
+  <p>Legislação (ctresb/leis), processos via DataJud/CNJ, servidor MCP e cálculo de prazos do CPC — tudo open source.</p>
+</header>
+<main>
+  <section>
+    <h2>⏱ Calculadora de prazos (CPC 219, 220, 224)</h2>
+    <label>Data da intimação/publicação<input id="p-ini" type="date"></label>
+    <label>Prazo (dias)<input id="p-dias" type="number" value="15" min="1"></label>
+    <label><input id="p-uteis" type="checkbox" checked style="width:auto"> Dias úteis (art. 219)</label>
+    <button onclick="prazo()">Calcular</button><pre id="p-out"></pre>
+  </section>
+  <section>
+    <h2>📂 Consulta de processo (número CNJ)</h2>
+    <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO">
+    <button onclick="processo()">Consultar no DataJud</button><pre id="c-out"></pre>
+  </section>
+  <section>
+    <h2>📚 Busca na legislação</h2>
+    <div class="row"><input id="l-q" placeholder="ex.: prazo contestação dias úteis"><button style="width:auto" onclick="leis()">Buscar</button></div>
+    <pre id="l-out"></pre>
+  </section>
+  <section>
+    <h2>🗣 Juridiquês → português</h2>
+    <div class="row"><input id="t-q" placeholder="ex.: conclusos para despacho"><button style="width:auto" onclick="traduzir()">Traduzir</button></div>
+    <pre id="t-out"></pre>
+  </section>
+  <section style="grid-column:1/-1">
+    <h2>As 4 camadas</h2>
+    <ul class="layers">
+      <li><b>Contexto</b> — índice FTS5 da legislação + consulta DataJud.</li>
+      <li><b>Memória</b> — snapshots de andamentos; sigilo e CPFs protegidos (LGPD / Res. CNJ 331).</li>
+      <li><b>Referências</b> — conector certo por caso de uso (DataJUD_API_CALLER, api_cnj, mcp-juridico-brasil, tjsp, crawler-jus).</li>
+      <li><b>Linguagem</b> — tradução de juridiquês e cálculo de prazos offline.</li>
+    </ul>
+  </section>
+  <p class="aviso">Informativo; não substitui advogado. Código MIT no GitHub.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
+async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
+const prazo=()=>call('p-out','/api/prazo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inicio:$('p-ini').value,dias:+$('p-dias').value,dias_uteis:$('p-uteis').checked})});
+const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
+const leis=()=>call('l-out','/api/leis?vigentes=true&q='+encodeURIComponent($('l-q').value));
+const traduzir=()=>call('t-out','/api/traduzir?movimento='+encodeURIComponent($('t-q').value));
+$('p-ini').valueAsDate=new Date();
+</script>
+</body>
+</html>
