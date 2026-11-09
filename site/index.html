@@ -193,8 +193,10 @@ const $=id=>document.getElementById(id);
 const qsApi=new URLSearchParams(location.search).get('api');if(qsApi)localStorage.setItem('oj_api',qsApi);
 const API=(localStorage.getItem('oj_api')||document.querySelector('meta[name=openjus-api]').content||'').replace(/\/$/,'');let API_OK=false;
 const _f=window.fetch.bind(window);window.fetch=(u,o)=>_f(typeof u==='string'&&u.startsWith('/api/')?API+u:u,o);
-fetch('/api/saude').then(r=>r.ok&&r.json()).then(d=>{API_OK=!!d;}).catch(()=>{}).finally(()=>{const e=$('api-st');
-  e.textContent=API_OK?'API conectada':'modo navegador (processos e leis precisam da API)';if(API_OK)e.classList.add('ok')});
+// Plano grátis do Render "dorme": tenta acordar a API por até ~70 s.
+(async()=>{const e=$('api-st');if(API)e.textContent='acordando a API (até 1 min)…';
+  for(let i=0;i<8&&!API_OK;i++){try{const r=await fetch('/api/saude');API_OK=r.ok}catch(_){ }if(!API_OK)await new Promise(ok=>setTimeout(ok,9000))}
+  e.textContent=API_OK?'API conectada':'modo navegador (processos e leis precisam da API)';if(API_OK)e.classList.add('ok')})();
 function copiarPix(){navigator.clipboard.writeText($('pix').textContent.trim()).then(()=>{$('pix-btn').textContent='Copiado ✓';setTimeout(()=>$('pix-btn').textContent='Copiar Pix',2000)})}
 const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
 async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
