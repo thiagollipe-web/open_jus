@@ -111,3 +111,44 @@ async def test_bot_usa_ferramenta_de_prazo():
 
     out = await conversar([{"role": "user", "content": "prazo?"}], client=NS(messages=FakeMsgs()))
     assert out["ferramentas"] == ["calcular_prazo"] and "28/03" in out["resposta"]
+
+
+def test_cotas_franquia_e_credito(tmp_path):
+    from openjus import cotas
+
+    db = tmp_path / "c.db"
+    k = cotas.criar_chave(db, "t")
+    assert cotas.saldo(db, k, 100) == {"creditos": 0, "gratis_restante": 100}
+    cotas.debitar(db, k, 150, 100)  # estoura a franquia; sem crédito -> zera
+    assert cotas.saldo(db, k, 100) == {"creditos": 0, "gratis_restante": 0}
+    assert cotas.adicionar_creditos(db, k, 500) == 500
+    cotas.debitar(db, k, 200, 100)  # franquia esgotada: tudo sai dos créditos
+    assert cotas.saldo(db, k, 100)["creditos"] == 300
+    assert cotas.saldo(db, "oj_falsa", 100) is None
+    assert cotas.adicionar_creditos(db, "oj_falsa", 5) is None
+
+
+def test_api_chat_402_e_429(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from openjus import api, cotas
+    from openjus.config import get_settings
+
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "a.db"))
+    monkeypatch.setenv("ADMIN_TOKEN", "adm")
+    monkeypatch.setenv("FREE_DAILY_TOKENS", "0")
+    monkeypatch.setenv("RATE_LIMIT_PER_MIN", "1000")
+    get_settings.cache_clear()
+    c = TestClient(api.app)
+    body = {"mensagens": [{"role": "user", "content": "oi"}]}
+    assert c.post("/api/chat", json=body).status_code == 401
+    assert c.post("/admin/chaves", json={}).status_code == 403
+    k = c.post("/admin/chaves", json={}, headers={"X-Admin-Token": "adm"}).json()["chave"]
+    r = c.post("/api/chat", json=body, headers={"X-OpenJus-Key": k})
+    assert r.status_code == 402  # sem franquia e sem créditos
+    monkeypatch.setenv("RATE_LIMIT_PER_MIN", "2")
+    get_settings.cache_clear()
+    cotas._JANELA.clear()
+    codes = [c.get("/api/saude").status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+    get_settings.cache_clear()

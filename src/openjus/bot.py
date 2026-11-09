@@ -77,12 +77,15 @@ async def conversar(mensagens: list[dict[str, Any]], client: AsyncAnthropic | No
         client = AsyncAnthropic(api_key=s.anthropic_api_key)
     msgs = list(mensagens)
     usadas: list[str] = []
+    tokens = 0
     for _ in range(max_passos):
         r = await client.messages.create(model=s.anthropic_model, max_tokens=1500,
                                          system=SYSTEM, tools=TOOLS, messages=msgs)
+        u = getattr(r, "usage", None)
+        tokens += (getattr(u, "input_tokens", 0) or 0) + (getattr(u, "output_tokens", 0) or 0)
         if r.stop_reason != "tool_use":
             texto = "".join(b.text for b in r.content if b.type == "text")
-            return {"resposta": remover_cliches(texto), "ferramentas": usadas}
+            return {"resposta": remover_cliches(texto), "ferramentas": usadas, "tokens": tokens}
         msgs.append({"role": "assistant", "content": r.content})
         resultados = []
         for b in r.content:
@@ -92,4 +95,5 @@ async def conversar(mensagens: list[dict[str, Any]], client: AsyncAnthropic | No
                 resultados.append({"type": "tool_result", "tool_use_id": b.id,
                                    "content": json.dumps(out, ensure_ascii=False, default=str)})
         msgs.append({"role": "user", "content": resultados})
-    return {"resposta": "Não consegui concluir. Reformule a pergunta.", "ferramentas": usadas}
+    return {"resposta": "Não consegui concluir. Reformule a pergunta.", "ferramentas": usadas,
+            "tokens": tokens}

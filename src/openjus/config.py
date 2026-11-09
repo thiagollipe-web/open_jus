@@ -11,6 +11,9 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"
+    admin_token: str = ""
+    free_daily_tokens: int = 5000
+    rate_limit_per_min: int = 60
     datajud_api_key: str = ""
     datajud_base_url: str = "https://api-publica.datajud.cnj.jus.br"
     leis_dir: Path = Path("./data/leis")

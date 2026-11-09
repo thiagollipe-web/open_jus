@@ -84,6 +84,16 @@ Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `expli
 | GET | `/api/traduzir?movimento=` | Explica uma movimentação |
 | GET | `/api/conectores` | Lista os conectores do ecossistema |
 
+## 💳 Limites e cobrança do bot
+
+`/api/chat` gasta tokens pagos da Anthropic, então é protegido:
+
+- **Chave de acesso** por usuário (`X-OpenJus-Key`), emitida pelo admin: `POST /admin/chaves` com `X-Admin-Token`.
+- **Franquia grátis diária** (`FREE_DAILY_TOKENS`, padrão 5000). Passou disso, o uso sai dos **créditos pré-pagos**; sem saldo, a API responde **402**.
+- **Créditos:** o admin adiciona após receber o pagamento (Pix): `POST /admin/creditos {"chave": "...", "tokens": 100000}`. Não há cobrança automática ainda.
+- **Limite por IP** em `/api/*` (`RATE_LIMIT_PER_MIN`, padrão 60 → **429**) e teto de tamanho da conversa.
+- Defina um **limite de gasto** no console da Anthropic como segunda trava.
+
 ## ⚠️ Limitações
 
 - Feriados estaduais e municipais entram via `feriados_extras`.
