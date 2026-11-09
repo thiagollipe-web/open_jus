@@ -23,6 +23,7 @@ Legislação, processos do DataJud/CNJ e prazos do CPC — numa API, num servido
 | 🗣️ | **Juridiquês → português** | Traduz movimentações e remove clichês de IA |
 | ⏱️ | **Prazos do CPC** | Arts. 219, 220 e 224, com calendário forense offline |
 | 🔒 | **LGPD** | Segredo de justiça não é gravado; CPFs são mascarados (Res. CNJ 331/2020) |
+| 🧠 | **Bot inteligente** | Claude interpreta a pergunta e chama as ferramentas (prazo, leis, processo); nunca calcula prazo nem cita lei de memória. Endpoint `POST /api/chat`, requer `ANTHROPIC_API_KEY` |
 | 🤖 | **Servidor MCP** | Use no Claude Desktop, Cursor e outros agentes |
 
 ## 🧱 Arquitetura em 4 camadas

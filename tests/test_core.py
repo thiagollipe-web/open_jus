@@ -87,3 +87,27 @@ def test_lgpd_sigilo(tmp_path):
                                 "movimentos": [{"nome": "x", "dataHora": "2024-01-01"}]}})
     assert salvar_snapshot(tmp_path / "m.db", p) == {"sigiloso": True}
     assert "[CPF OCULTO]" in mascarar_pii("CPF 123.456.789-09")
+
+
+async def test_bot_usa_ferramenta_de_prazo():
+    from types import SimpleNamespace as NS
+
+    from openjus.bot import conversar
+
+    class FakeMsgs:
+        def __init__(self):
+            self.n = 0
+
+        async def create(self, **kw):
+            self.n += 1
+            if self.n == 1:
+                tu = NS(type="tool_use", id="t1", name="calcular_prazo",
+                        input={"data_inicio": "2025-03-07", "dias": 15})
+                return NS(stop_reason="tool_use", content=[tu])
+            res = kw["messages"][-1]["content"][0]["content"]
+            assert "2025-03-28" in res  # modelo recebeu o resultado determinístico
+            return NS(stop_reason="end_turn",
+                      content=[NS(type="text", text="Vence em 28/03/2025.")])
+
+    out = await conversar([{"role": "user", "content": "prazo?"}], client=NS(messages=FakeMsgs()))
+    assert out["ferramentas"] == ["calcular_prazo"] and "28/03" in out["resposta"]

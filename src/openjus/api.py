@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import leis, servico
+from . import bot, leis, servico
 from .cnj import CNJError, parse_cnj
 from .config import get_settings
 from .datajud import DataJudError
@@ -31,6 +31,18 @@ class PrazoIn(BaseModel):
     dias: int = Field(gt=0, le=365)
     dias_uteis: bool = True
     feriados_extras: list[date] = []
+
+
+class ChatIn(BaseModel):
+    mensagens: list[dict] = Field(min_length=1, max_length=40)
+
+
+@app.post("/api/chat")
+async def chat(c: ChatIn) -> dict:
+    try:
+        return await bot.conversar(c.mensagens)
+    except RuntimeError as e:
+        raise HTTPException(503, str(e)) from e
 
 
 @app.get("/api/saude")
