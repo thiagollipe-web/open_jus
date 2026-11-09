@@ -4,14 +4,15 @@ services:
     name: openjus-api
     runtime: python
     plan: free
+    # Build rápido. Para indexar o acervo ctresb/leis (grande), defina INGEST_LEIS=1.
     buildCommand: >-
-      pip install -r requirements.txt && pip install . &&
-      (git clone --depth 1 https://github.com/ctresb/leis data/leis && openjus-ingest || echo "acervo de leis indisponível; seguindo sem índice")
+      pip install --upgrade pip && pip install -r requirements.txt && pip install . &&
+      if [ "$INGEST_LEIS" = "1" ]; then (git clone --depth 1 https://github.com/ctresb/leis data/leis && openjus-ingest) || echo "sem índice de leis"; fi
     startCommand: uvicorn openjus.api:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
     healthCheckPath: /api/saude
     envVars:
       - key: PYTHON_VERSION
-        value: "3.12"
+        value: "3.12.7"
       - key: CORS_ORIGINS
         value: https://thiagollipe-web.github.io
       - key: DATAJUD_API_KEY
