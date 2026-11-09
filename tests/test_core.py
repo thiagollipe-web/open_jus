@@ -219,3 +219,28 @@ def test_glossario_json_do_site_em_dia():
 
     j = json.loads((Path(__file__).parents[1] / "site" / "glossario.json").read_text(encoding="utf-8"))
     assert j == GLOSSARIO  # regenere site/glossario.json se mudar o glossário
+
+
+async def test_slm_ollama_ancorado(monkeypatch):
+    import httpx
+
+    from openjus import slm
+    from openjus.config import get_settings
+
+    monkeypatch.setenv("OLLAMA_URL", "http://ollama.test")
+    get_settings.cache_clear()
+    vistos = {}
+
+    def h(req: httpx.Request) -> httpx.Response:
+        vistos["body"] = req.content.decode()
+        return httpx.Response(200, json={"message": {"content": "Resumo simples."}})
+
+    c = httpx.AsyncClient(transport=httpx.MockTransport(h))
+    assert await slm.resumir("pergunta", ["trecho A"], client=c) == "Resumo simples."
+    assert "trecho A" in vistos["body"] and "SOMENTE o CONTEXTO" in vistos["body"]
+    assert await slm.resumir("pergunta", [], client=c) is None  # sem contexto não chama o modelo
+    c2 = httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(200, json={"message": {"content": "Não sei responder com segurança."}})))
+    assert await slm.resumir("p", ["x"], client=c2) is None
+    monkeypatch.setenv("OLLAMA_URL", "")
+    get_settings.cache_clear()
+    assert await slm.resumir("p", ["x"]) is None

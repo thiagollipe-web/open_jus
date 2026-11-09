@@ -131,6 +131,7 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
   <div class="tools">
     <div class="card wide rv"><h3>Pergunte ao bot</h3><p>Grátis, roda no navegador e aprende com você. Prazos, termos, processos e leis.</p>
       <pre id="b-log">Ex.: "Intimado em 07/03/2025, prazo de 15 dias úteis" · "o que significa trânsito em julgado?" · "ensinar: pergunta => resposta"</pre>
+      <div class="row" style="margin-bottom:10px"><button class="go" id="slm-btn" onclick="ativarSLM()">Ativar IA local (≈400 MB)</button><small id="slm-st" style="color:var(--mut);align-self:center">opcional · roda no seu navegador · grátis</small></div>
       <div class="row"><input id="b-q" placeholder="Digite sua pergunta" aria-label="Pergunta" onkeydown="if(event.key==='Enter')bot()"><button class="go" onclick="bot()">Enviar</button></div></div>
     <div class="card rv"><h3>Prazos do CPC</h3><p>Arts. 219, 220 e 224. Roda no seu navegador.</p>
       <label>Intimação/publicação<input id="p-ini" type="date"></label><label>Dias<input id="p-dias" type="number" value="15" min="1"></label>
@@ -184,6 +185,30 @@ function calcPrazo(ini,dias,uteis){let v,c;
 function parseData(t){let m=t.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);if(m)return new Date(Date.UTC(+m[3],m[2]-1,+m[1]));
   m=t.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);return m?new Date(Date.UTC(+m[1],m[2]-1,+m[3])):null}
 const AJUDA='Posso ajudar com:\n• Prazo: "intimado em 07/03/2025, prazo de 15 dias úteis"\n• Termos: "o que significa trânsito em julgado?"\n• Processo: número CNJ (precisa da API)\n• Leis: pergunta sobre lei (precisa da API)\n• Me ensinar: "ensinar: pergunta => resposta"';
+// ---- SLM opcional (Qwen2.5-0.5B via Transformers.js, roda no navegador) ----
+// Só responde com base em CONTEXTO recuperado (glossário + aprendizado + leis da API); sem contexto, não chama o modelo.
+let SLM=null,slmLoading=false;
+async function ativarSLM(){
+  if(SLM||slmLoading)return;slmLoading=true;const st=$('slm-st'),bt=$('slm-btn');bt.disabled=true;st.textContent='baixando modelo… (1ª vez demora; depois fica em cache)';
+  try{
+    const {pipeline}=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
+    SLM=await pipeline('text-generation','onnx-community/Qwen2.5-0.5B-Instruct',{dtype:'q4',device:navigator.gpu?'webgpu':'wasm',
+      progress_callback:p=>{if(p.status==='progress'&&p.total)st.textContent='baixando '+(p.file||'').split('/').pop()+' '+Math.round(p.loaded/p.total*100)+'%'}});
+    st.textContent='✅ IA local ativa';bt.textContent='IA local ativa';
+  }catch(e){st.textContent='⚠️ não consegui carregar a IA local ('+e.message+'). O bot segue por regras.';bt.disabled=false}
+  slmLoading=false}
+async function contexto(q){
+  const c=[];
+  Object.entries(GLOS).map(([k,v])=>[sim(q,k+' '+v),k,v]).filter(x=>x[0]>.12).sort((a,b)=>b[0]-a[0]).slice(0,3).forEach(x=>c.push(x[1]+': '+x[2]));
+  mem().map(x=>[sim(q,x.q),x]).filter(x=>x[0]>.25).sort((a,b)=>b[0]-a[0]).slice(0,2).forEach(x=>c.push(x[1].q+' → '+x[1].a));
+  try{const r=await fetch('/api/leis?vigentes=true&limite=2&q='+encodeURIComponent(q));if(r.ok)(await r.json()).forEach(t=>c.push((t.titulo||'')+' '+(t.urn||'')+': '+t.texto.slice(0,500)))}catch(e){}
+  return c}
+async function viaSLM(q){
+  if(!SLM)return null;const ctx=await contexto(q);if(!ctx.length)return null;
+  const msgs=[{role:'system',content:'Você é o OpenJus, assistente jurídico informativo do Brasil. Responda em português simples e curto, usando SOMENTE o CONTEXTO. Se o contexto não responder, diga exatamente: "Não sei responder com segurança." Não invente leis, artigos nem prazos.'},
+    {role:'user',content:'CONTEXTO:\n- '+ctx.join('\n- ')+'\n\nPERGUNTA: '+q}];
+  try{const o=await SLM(msgs,{max_new_tokens:220,do_sample:false,repetition_penalty:1.1});const t=o[0].generated_text.at(-1).content.trim();
+    if(!t||/n[ãa]o sei responder/i.test(t))return null;return t+'\n(resumo gerado por IA local a partir das fontes acima; confira o texto oficial)'}catch(e){return null}}
 async function responder(q){
   let m=q.match(/^ensinar:\s*(.+?)\s*=>\s*(.+)$/is);
   if(m){const l=mem();l.push({q:m[1],a:m[2]});localStorage.setItem(MEM_KEY,JSON.stringify(l));
@@ -204,6 +229,7 @@ async function responder(q){
   if(ans&&best>=.6)return ans+'\n(aprendi isso com você)';
   const nq=norm(q),k=Object.keys(GLOS).sort((a,b)=>b.length-a.length).find(k=>nq.includes(norm(k)));
   if(k)return k[0].toUpperCase()+k.slice(1)+': '+GLOS[k];
+  const g=await viaSLM(q);if(g)return g;
   try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensagens:[{role:'user',content:q}]})});
     if(r.ok){const d=await r.json();return d.resposta}}catch(e){}
   return 'Ainda não sei responder isso. Me ensine: "ensinar: pergunta => resposta".\n\n'+AJUDA}

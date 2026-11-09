@@ -11,6 +11,8 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"
+    ollama_url: str = ""
+    ollama_model: str = "qwen2.5:0.5b"
     admin_token: str = ""
     free_daily_tokens: int = 5000
     rate_limit_per_min: int = 60

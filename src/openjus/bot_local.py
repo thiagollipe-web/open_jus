@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from . import aprendizado, leis, servico
+from . import aprendizado, leis, servico, slm
 from .cnj import CNJError
 from .config import get_settings
 from .datajud import DataJudError
@@ -105,7 +105,7 @@ def _lei(texto: str) -> dict:
     partes = [f"• {t.titulo}{f' ({t.urn})' if t.urn else ''}:\n  {t.texto[:400].strip()}…"
               for t in achados]
     return {"resposta": "Trechos encontrados (confira o texto oficial):\n" + "\n".join(partes),
-            "ferramentas": ["buscar_legislacao"]}
+            "ferramentas": ["buscar_legislacao"], "_trechos": [t.texto[:600] for t in achados]}
 
 
 async def conversar_local(texto: str) -> dict:
@@ -125,4 +125,10 @@ async def conversar_local(texto: str) -> dict:
         out = {"resposta": AJUDA, "ferramentas": []}
     else:
         out = _lei(texto)
+        resumo = await slm.resumir(texto, out.pop("_trechos", []))  # SLM opcional, ancorado nos trechos
+        if resumo:
+            out["resposta"] = (f"{resumo}\n(resumo por IA local; confira os trechos oficiais)\n\n"
+                               + out["resposta"])
+            out["ferramentas"] = [*out["ferramentas"], "slm"]
+    out.pop("_trechos", None)
     return {**out, "tokens": 0}

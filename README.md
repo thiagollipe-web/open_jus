@@ -100,6 +100,12 @@ Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `expli
 - **No servidor:** o ensinamento vai para `POST /api/ensinar` como **pendente**. Um admin revisa (`GET /admin/pendentes`) e aprova (`POST /admin/aprovar`); só então o bot passa a responder aquilo para todos, por similaridade de texto. Perguntas sem resposta viram **lacunas** (ordenadas por frequência) para você saber o que ensinar.
 - A moderação evita que alguém envenene o bot com informação jurídica errada.
 
+### 🪶 SLM leve opcional (grátis, sem API paga)
+Um modelo pequeno **só reescreve em linguagem simples o que as fontes já trouxeram**; sem contexto recuperado, ele nem é chamado (modelo pequeno inventa lei, então a regra vem antes).
+
+- **No navegador:** botão **"Ativar IA local"** no site. Carrega `onnx-community/Qwen2.5-0.5B-Instruct` (Qwen 2.5, 0,5 B, ≈400 MB, quantizado) via [Transformers.js](https://github.com/huggingface/transformers.js), com WebGPU quando disponível, senão WASM. Baixa uma vez e fica em cache.
+- **No servidor:** defina `OLLAMA_URL=http://localhost:11434` e rode `ollama pull qwen2.5:0.5b`. O resumo é anexado às respostas de busca em lei.
+
 Só há limite por IP (`RATE_LIMIT_PER_MIN`, padrão 60 → 429). Não entende linguagem livre complexa: fora desses casos, mostra a ajuda.
 
 ### Opcional: bot com LLM pago
