@@ -8,9 +8,12 @@ Com trechos de lei: resume ancorado neles. Sem trechos: orientação geral, marc
 from __future__ import annotations
 
 import httpx
+import structlog
 
 from .config import get_settings
 from .linguagem import remover_cliches
+
+log = structlog.get_logger()
 
 SISTEMA = (
     "Você é o OpenJus, assistente jurídico informativo do Brasil. Regras OBRIGATÓRIAS:\n"
@@ -44,8 +47,12 @@ async def perguntar(pergunta: str, trechos: list[str],
         r = await c.post(f"{s.free_llm_base_url.rstrip('/')}/chat/completions", json=body, headers=headers)
         r.raise_for_status()
         txt = r.json()["choices"][0]["message"]["content"].strip()
-    except (httpx.HTTPError, KeyError, IndexError, ValueError):
-        return None  # limite do plano grátis, queda etc.: o bot segue por regras
+    except httpx.HTTPStatusError as e:  # 401 chave errada, 404 modelo/URL errados, 429 limite grátis
+        log.warning("ia_livre_falhou", status=e.response.status_code, corpo=e.response.text[:300])
+        return None
+    except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
+        log.warning("ia_livre_falhou", erro=f"{type(e).__name__}: {e}")
+        return None
     finally:
         if client is None:
             await c.aclose()

@@ -299,3 +299,29 @@ def test_ia_enxuga_resposta():
     out = enxugar(longo)
     assert len(out) <= 900 and out.endswith(".") and "Ótima pergunta" not in out
     assert "4 frases" in SISTEMA and "só ajuda com temas" in SISTEMA
+
+
+async def test_bot_pede_cnj_e_cumprimenta(tmp_path, monkeypatch):
+    from openjus.bot_local import conversar_local
+    from openjus.config import get_settings
+
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "x.db"))
+    get_settings.cache_clear()
+    assert "número CNJ" in (await conversar_local("Quero saber de um processo"))["resposta"]
+    assert (await conversar_local("Olá"))["resposta"].startswith("Olá!")
+    r = await conversar_local("posso ser despejado?")  # sem índice e sem IA: nada técnico
+    assert "openjus-ingest" not in r["resposta"]
+    get_settings.cache_clear()
+
+
+def test_api_status_sem_segredos(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from openjus import api
+    from openjus.config import get_settings
+
+    monkeypatch.setenv("FREE_LLM_API_KEY", "segredo")
+    get_settings.cache_clear()
+    j = TestClient(api.app).get("/api/status").json()
+    assert j["ia_chave_definida"] is True and "segredo" not in str(j)
+    get_settings.cache_clear()

@@ -91,10 +91,27 @@ def _termo(texto: str) -> dict | None:
     return None
 
 
+def _tem_indice(db) -> bool:
+    import sqlite3
+    try:
+        con = sqlite3.connect(db)
+        ok = con.execute("SELECT 1 FROM leis_fts LIMIT 1").fetchone() is not None
+        con.close()
+        return ok
+    except sqlite3.Error:
+        return False
+
+
+PEDE_CNJ = ("Para consultar um processo, envie o número CNJ completo, no formato "
+            "NNNNNNN-DD.AAAA.J.TT.OOOO (ex.: 0000000-00.2024.8.26.0100). Ele aparece na "
+            "intimação, no site do tribunal ou com seu advogado.")
+
+
 def _lei(texto: str) -> dict:
     db = get_settings().db_path
-    if not db.exists():
-        return {"resposta": "O índice de leis ainda não foi criado (rode `openjus-ingest`).",
+    if not db.exists() or not _tem_indice(db):
+        return {"resposta": "Ainda não sei responder isso com segurança. Tente reformular, ou me "
+                            "ensine com `ensinar: pergunta => resposta`.\n\n" + AJUDA,
                 "ferramentas": []}
     achados = leis.buscar(db, texto, limite=3, apenas_vigentes=True)
     if not achados:
@@ -117,6 +134,10 @@ async def conversar_local(texto: str) -> dict:
     elif re.search(r"\b(prazo|vence|vencimento|contestar|recorrer)\b", texto, re.IGNORECASE) \
             and (_data(texto) or DIAS_RE.search(texto)):
         out = _prazo(texto)
+    elif re.search(r"\bprocess(o|os|ual)\b", texto, re.IGNORECASE) and len(texto) < 80:
+        out = {"resposta": PEDE_CNJ, "ferramentas": []}
+    elif re.fullmatch(r"\s*(oi|ol[aá]|bom dia|boa tarde|boa noite|e a[ií])[!.\s]*", texto, re.IGNORECASE):
+        out = {"resposta": "Olá! " + AJUDA, "ferramentas": []}
     elif t := _termo(texto):
         out = t
     elif (db := get_settings().db_path).exists() and (a := aprendizado.buscar(db, texto)):

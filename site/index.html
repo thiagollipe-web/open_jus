@@ -267,6 +267,8 @@ async function responder(q){
       if(!r.ok)return 'Não consegui: '+(d.detail||r.status);if(!d.encontrado)return 'Processo não encontrado no DataJud.';if(d.sigiloso)return d.aviso;
       return ['Classe: '+d.classe,'Assuntos: '+(d.assuntos.join(', ')||'—'),'Órgão: '+d.orgao_julgador,'Últimas movimentações:',...d.movimentos.slice(0,5).map(x=>'• '+(x.data||'').slice(0,10)+' — '+x.nome+': '+x.explicacao)].join('\n')
     }catch(e){return 'Para consultar processo preciso da API (rode openjus-api).'}}
+  if(/^\s*(oi|ol[aá]|bom dia|boa tarde|boa noite|e a[ií])[!.\s]*$/i.test(q))return 'Olá! '+AJUDA;
+  if(/\bprocess(o|os|ual)\b/i.test(q)&&q.length<80)return 'Para consultar um processo, envie o número CNJ completo, no formato NNNNNNN-DD.AAAA.J.TT.OOOO (ex.: 0000000-00.2024.8.26.0100). Ele aparece na intimação, no site do tribunal ou com seu advogado.';
   const ini=parseData(q),dm=q.match(/\b(\d{1,3})\s*dias?\b/i);
   if(/\b(prazo|vence|vencimento|contestar|recorrer)\b/i.test(q)&&(ini||dm)){
     if(!ini||!dm)return 'Para calcular o prazo preciso da data da intimação e do número de dias. Ex.: "intimado em 07/03/2025, 15 dias úteis".';
