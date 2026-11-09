@@ -41,3 +41,12 @@ Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `expli
 - DataJud público tem dados parciais e atraso de atualização; scraping de e-SAJ não está incluído (use os conectores da camada 3).
 
 Licença MIT.
+
+## Deploy da API no Azure App Service (Linux)
+```bash
+az webapp up -n <app> -g <rg> -l brazilsouth --sku B1 --os-type Linux --runtime "PYTHON:3.12"
+az webapp config appsettings set -g <rg> -n <app> --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true DATAJUD_API_KEY=<chave>
+az webapp config set -g <rg> -n <app> --startup-file "PYTHONPATH=src gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 openjus.api:app"
+az webapp config appsettings set -g <rg> -n <app> --settings WEBSITES_PORT=8000
+```
+Rode `az login` antes. Para o site no GitHub Pages falar com a API, hospede a API e aponte o front para ela (hoje o Pages só calcula prazos, no navegador).

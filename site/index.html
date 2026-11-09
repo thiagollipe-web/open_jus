@@ -64,7 +64,21 @@ a{color:var(--ac)}
 const $=id=>document.getElementById(id);
 const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
 async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
-const prazo=()=>call('p-out','/api/prazo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inicio:$('p-ini').value,dias:+$('p-dias').value,dias_uteis:$('p-uteis').checked})});
+// Prazo calculado no navegador (espelha src/openjus/prazos.py; funciona sem API).
+const D=864e5,iso=d=>d.toISOString().slice(0,10),add=(d,n)=>new Date(d.getTime()+n*D);
+function pascoa(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),dia=(h+l-7*m+114)%31+1;return new Date(Date.UTC(y,mo-1,dia))}
+function feriados(y){const p=pascoa(y),s=new Set([[1,1],[4,21],[5,1],[9,7],[10,12],[11,2],[11,15],[11,20],[12,25]].map(([m,d])=>iso(new Date(Date.UTC(y,m-1,d)))));[-48,-47,-2,60].forEach(n=>s.add(iso(add(p,n))));return s}
+const recesso=d=>(d.getUTCMonth()==11&&d.getUTCDate()>=20)||(d.getUTCMonth()==0&&d.getUTCDate()<=20);
+const util=d=>d.getUTCDay()%6!=0&&!feriados(d.getUTCFullYear()).has(iso(d))&&!recesso(d);
+const proxUtil=d=>{while(!util(d))d=add(d,1);return d};
+function prazo(){
+  const ini=new Date($('p-ini').value+'T00:00:00Z'),dias=+$('p-dias').value;
+  if(isNaN(ini)||dias<1)return show('p-out','Informe data e prazo válidos.');
+  let v,c;
+  if($('p-uteis').checked){c=proxUtil(add(ini,1));v=c;for(let n=dias-1;n>0;n--)v=proxUtil(add(v,1))}
+  else{c=add(ini,1);v=proxUtil(add(ini,dias))}
+  show('p-out',{inicio_contagem:iso(c),vencimento:iso(v),fundamentos:['CPC 224: exclui o dia do começo, inclui o do vencimento','CPC 219: dias úteis','CPC 220: recesso 20/12–20/01'],aviso:'Confira feriados locais e a data efetiva da intimação.'});
+}
 const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
 const leis=()=>call('l-out','/api/leis?vigentes=true&q='+encodeURIComponent($('l-q').value));
 const traduzir=()=>call('t-out','/api/traduzir?movimento='+encodeURIComponent($('t-q').value));
