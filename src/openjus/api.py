@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+import secrets
 from datetime import date
 from pathlib import Path
 
 import structlog
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import bot, leis, servico
+from . import aprendizado, bot, bot_local, cotas, leis, servico
 from .cnj import CNJError, parse_cnj
 from .config import get_settings
 from .datajud import DataJudError
@@ -37,12 +38,104 @@ class ChatIn(BaseModel):
     mensagens: list[dict] = Field(min_length=1, max_length=40)
 
 
+@app.middleware("http")
+async def limitar_taxa(request: Request, call_next):
+    # Atrás de proxy/Azure, configure o servidor para repassar o IP real (--proxy-headers).
+    if request.url.path.startswith(("/api/", "/admin/")):
+        ip = request.client.host if request.client else "?"
+        if not cotas.limite_taxa(ip, get_settings().rate_limit_per_min):
+            return JSONResponse({"detail": "Muitas requisições. Tente em instantes."}, 429)
+    return await call_next(request)
+
+
 @app.post("/api/chat")
 async def chat(c: ChatIn) -> dict:
+    """Bot gratuito (sem LLM, sem chave): só limite por IP."""
+    ultimo = next((str(m.get("content", "")) for m in reversed(c.mensagens)
+                   if m.get("role") == "user"), "")
+    if len(ultimo) > 1000:
+        raise HTTPException(413, "Mensagem muito longa.")
+    return await bot_local.conversar_local(ultimo)
+
+
+class Ensino(BaseModel):
+    pergunta: str = Field(min_length=5, max_length=300)
+    resposta: str = Field(min_length=5, max_length=1500)
+
+
+@app.post("/api/ensinar")
+def ensinar(e: Ensino) -> dict:
+    """Recebe ensinamento; só passa a valer depois da aprovação de um admin."""
+    aprendizado.ensinar(get_settings().db_path, e.pergunta, e.resposta)
+    return {"status": "pendente", "mensagem": "Obrigado! Um moderador vai revisar."}
+
+
+@app.get("/admin/pendentes")
+def pendentes(x_admin_token: str = Header(default="")) -> dict:
+    _admin(x_admin_token)
+    db = get_settings().db_path
+    return {"pendentes": aprendizado.pendentes(db), "lacunas": aprendizado.lacunas(db)}
+
+
+class Aprovar(BaseModel):
+    id: int
+
+
+@app.post("/admin/aprovar")
+def aprovar(a: Aprovar, x_admin_token: str = Header(default="")) -> dict:
+    _admin(x_admin_token)
+    if not aprendizado.aprovar(get_settings().db_path, a.id):
+        raise HTTPException(404, "Item não encontrado.")
+    return {"status": "aprovado"}
+
+
+@app.post("/api/chat-llm")
+async def chat_llm(c: ChatIn, x_openjus_key: str = Header(default="")) -> dict:
+    s = get_settings()
+    if sum(len(str(m.get("content", ""))) for m in c.mensagens) > 8000:
+        raise HTTPException(413, "Conversa muito longa. Comece uma nova.")
+    sd = cotas.saldo(s.db_path, x_openjus_key, s.free_daily_tokens) if x_openjus_key else None
+    if sd is None:
+        raise HTTPException(401, "Chave de acesso ausente ou inválida (cabeçalho X-OpenJus-Key).")
+    if sd["gratis_restante"] <= 0 and sd["creditos"] <= 0:
+        raise HTTPException(402, "Franquia grátis do dia esgotada e sem créditos. Adquira créditos.")
     try:
-        return await bot.conversar(c.mensagens)
+        r = await bot.conversar(c.mensagens)
     except RuntimeError as e:
         raise HTTPException(503, str(e)) from e
+    cotas.debitar(s.db_path, x_openjus_key, r.get("tokens", 0), s.free_daily_tokens)
+    return {**r, "saldo": cotas.saldo(s.db_path, x_openjus_key, s.free_daily_tokens)}
+
+
+def _admin(token: str) -> None:
+    esperado = get_settings().admin_token
+    if not esperado or not secrets.compare_digest(token, esperado):
+        raise HTTPException(403, "Admin não autorizado.")
+
+
+class NovaChave(BaseModel):
+    rotulo: str = ""
+    creditos: int = Field(default=0, ge=0)
+
+
+class Credito(BaseModel):
+    chave: str
+    tokens: int = Field(gt=0)
+
+
+@app.post("/admin/chaves")
+def nova_chave(n: NovaChave, x_admin_token: str = Header(default="")) -> dict:
+    _admin(x_admin_token)
+    return {"chave": cotas.criar_chave(get_settings().db_path, n.rotulo, n.creditos)}
+
+
+@app.post("/admin/creditos")
+def creditar(c: Credito, x_admin_token: str = Header(default="")) -> dict:
+    _admin(x_admin_token)
+    novo = cotas.adicionar_creditos(get_settings().db_path, c.chave, c.tokens)
+    if novo is None:
+        raise HTTPException(404, "Chave não encontrada.")
+    return {"creditos": novo}
 
 
 @app.get("/api/saude")

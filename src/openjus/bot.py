@@ -1,4 +1,4 @@
-"""Bot inteligente: Claude interpreta a pergunta e chama as ferramentas determinísticas.
+"""Bot OPCIONAL com LLM (pago): Claude interpreta a pergunta e chama as ferramentas determinísticas.
 
 O LLM nunca calcula prazo nem cita lei de memória: usa `calcular_prazo` e `buscar_legislacao`.
 """
@@ -8,8 +8,6 @@ from __future__ import annotations
 import json
 from datetime import date
 from typing import Any
-
-from anthropic import AsyncAnthropic
 
 from . import leis, servico
 from .config import get_settings
@@ -68,21 +66,26 @@ async def executar_ferramenta(nome: str, args: dict[str, Any]) -> Any:
         return {"erro": f"{type(e).__name__}: {e}"}
 
 
-async def conversar(mensagens: list[dict[str, Any]], client: AsyncAnthropic | None = None,
+async def conversar(mensagens: list[dict[str, Any]], client: Any = None,
                     max_passos: int = 6) -> dict[str, Any]:
     s = get_settings()
     if client is None:
         if not s.anthropic_api_key:
             raise RuntimeError("ANTHROPIC_API_KEY não configurada (veja .env.example).")
+        from anthropic import AsyncAnthropic  # extra opcional: pip install openjus[llm]
+
         client = AsyncAnthropic(api_key=s.anthropic_api_key)
     msgs = list(mensagens)
     usadas: list[str] = []
+    tokens = 0
     for _ in range(max_passos):
         r = await client.messages.create(model=s.anthropic_model, max_tokens=1500,
                                          system=SYSTEM, tools=TOOLS, messages=msgs)
+        u = getattr(r, "usage", None)
+        tokens += (getattr(u, "input_tokens", 0) or 0) + (getattr(u, "output_tokens", 0) or 0)
         if r.stop_reason != "tool_use":
             texto = "".join(b.text for b in r.content if b.type == "text")
-            return {"resposta": remover_cliches(texto), "ferramentas": usadas}
+            return {"resposta": remover_cliches(texto), "ferramentas": usadas, "tokens": tokens}
         msgs.append({"role": "assistant", "content": r.content})
         resultados = []
         for b in r.content:
@@ -92,4 +95,5 @@ async def conversar(mensagens: list[dict[str, Any]], client: AsyncAnthropic | No
                 resultados.append({"type": "tool_result", "tool_use_id": b.id,
                                    "content": json.dumps(out, ensure_ascii=False, default=str)})
         msgs.append({"role": "user", "content": resultados})
-    return {"resposta": "Não consegui concluir. Reformule a pergunta.", "ferramentas": usadas}
+    return {"resposta": "Não consegui concluir. Reformule a pergunta.", "ferramentas": usadas,
+            "tokens": tokens}

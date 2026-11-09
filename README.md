@@ -23,7 +23,7 @@ Legislação, processos do DataJud/CNJ e prazos do CPC — numa API, num servido
 | 🗣️ | **Juridiquês → português** | Traduz movimentações e remove clichês de IA |
 | ⏱️ | **Prazos do CPC** | Arts. 219, 220 e 224, com calendário forense offline |
 | 🔒 | **LGPD** | Segredo de justiça não é gravado; CPFs são mascarados (Res. CNJ 331/2020) |
-| 🧠 | **Bot inteligente** | Claude interpreta a pergunta e chama as ferramentas (prazo, leis, processo); nunca calcula prazo nem cita lei de memória. Endpoint `POST /api/chat`, requer `ANTHROPIC_API_KEY` |
+| 🧠 | **Bot gratuito** | Responde prazos, processos, termos e leis por regras, sem LLM e sem API paga (`POST /api/chat`) |
 | 🤖 | **Servidor MCP** | Use no Claude Desktop, Cursor e outros agentes |
 
 ## 🧱 Arquitetura em 4 camadas
@@ -83,6 +83,33 @@ Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `expli
 | GET | `/api/leis?q=` | Busca na legislação |
 | GET | `/api/traduzir?movimento=` | Explica uma movimentação |
 | GET | `/api/conectores` | Lista os conectores do ecossistema |
+
+## 🆓 Bot gratuito (sem LLM, sem API paga)
+
+`POST /api/chat` **não usa Claude, Azure nem qualquer API paga**. Ele interpreta a pergunta por regras e chama as ferramentas locais:
+
+| Você escreve | O bot faz |
+|---|---|
+| "intimado em 07/03/2025, prazo de 15 dias úteis" | calcula o prazo (CPC 219/220/224, calendário offline) |
+| número CNJ | consulta a **API pública e gratuita do DataJud** e explica as movimentações |
+| "o que significa trânsito em julgado?" | usa o glossário offline |
+| pergunta sobre lei | busca no índice local do `ctresb/leis` e cita título/URN |
+
+### 🧠 Aprendizado recorrente (sem LLM)
+- **No navegador:** o bot roda em JavaScript (prazos, glossário, aprendizado), então **funciona no GitHub Pages sem servidor**. Ensine com `ensinar: pergunta => resposta`; fica salvo no seu navegador (`esquecer tudo` apaga).
+- **No servidor:** o ensinamento vai para `POST /api/ensinar` como **pendente**. Um admin revisa (`GET /admin/pendentes`) e aprova (`POST /admin/aprovar`); só então o bot passa a responder aquilo para todos, por similaridade de texto. Perguntas sem resposta viram **lacunas** (ordenadas por frequência) para você saber o que ensinar.
+- A moderação evita que alguém envenene o bot com informação jurídica errada.
+
+### 🪶 SLM leve opcional (grátis, sem API paga)
+Um modelo pequeno **só reescreve em linguagem simples o que as fontes já trouxeram**; sem contexto recuperado, ele nem é chamado (modelo pequeno inventa lei, então a regra vem antes).
+
+- **No navegador:** botão **"Ativar IA local"** no site. Carrega `onnx-community/Qwen2.5-0.5B-Instruct` (Qwen 2.5, 0,5 B, ≈400 MB, quantizado) via [Transformers.js](https://github.com/huggingface/transformers.js), com WebGPU quando disponível, senão WASM. Baixa uma vez e fica em cache.
+- **No servidor:** defina `OLLAMA_URL=http://localhost:11434` e rode `ollama pull qwen2.5:0.5b`. O resumo é anexado às respostas de busca em lei.
+
+Só há limite por IP (`RATE_LIMIT_PER_MIN`, padrão 60 → 429). Não entende linguagem livre complexa: fora desses casos, mostra a ajuda.
+
+### Opcional: bot com LLM pago
+`POST /api/chat-llm` (Claude) é opcional: `pip install openjus[llm]` + `ANTHROPIC_API_KEY`. Exige chave de acesso por usuário (`X-OpenJus-Key`, emitida em `POST /admin/chaves`), tem franquia grátis diária (`FREE_DAILY_TOKENS`) e créditos pré-pagos (`POST /admin/creditos`); sem saldo → 402.
 
 ## ⚠️ Limitações
 
