@@ -13,7 +13,8 @@ body{background:var(--ink);color:var(--fg);font:16px/1.6 var(--sans);overflow-x:
 a{color:inherit}::selection{background:var(--ac);color:#000}
 :focus-visible{outline:2px solid var(--ac);outline-offset:3px}
 /* nav */
-nav{position:fixed;inset:0 0 auto;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:22px 4vw;mix-blend-mode:difference}
+nav{position:fixed;inset:0 0 auto;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:22px 4vw;transition:background .4s,padding .4s}
+nav.s{background:rgba(10,10,12,.82);backdrop-filter:blur(10px);padding-block:14px;border-bottom:1px solid var(--bd)}
 nav b{font:700 1.1rem var(--serif);letter-spacing:.04em}nav div{display:flex;gap:28px;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
 nav a{text-decoration:none}nav a:hover{opacity:.6}
 @media(max-width:640px){nav div a:not(:last-child){display:none}}
@@ -26,18 +27,24 @@ nav a{text-decoration:none}nav a:hover{opacity:.6}
 @keyframes push{from{transform:translateY(0) scale(1)}to{transform:translateY(-8%) scale(1.08)}}
 .slide svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .slide .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.05) 40%,rgba(0,0,0,.75))}
-.hero h1{position:absolute;z-index:10;left:4vw;right:4vw;bottom:15vh;font:400 clamp(2.6rem,9.5vw,9.5rem)/.92 var(--serif);letter-spacing:-.03em;pointer-events:none}
+.htxt{position:absolute;z-index:10;left:4vw;right:4vw;bottom:14vh}
+.hero h1{font:400 clamp(2.6rem,9.5vw,9.5rem)/.92 var(--serif);letter-spacing:-.03em}
+.sub{max-width:44ch;color:#d8d3c8;margin-top:22px;font-size:clamp(1rem,1.4vw,1.15rem);opacity:0;animation:fade 1s .9s forwards}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px;opacity:0;animation:fade 1s 1.1s forwards}
+@keyframes fade{to{opacity:1}}
+.btn{display:inline-block;padding:14px 26px;border-radius:99px;border:1px solid rgba(255,255,255,.4);text-decoration:none;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;transition:.35s}
+.btn:hover{border-color:var(--ac);color:var(--ac)}.btn.solid{background:var(--ac);border-color:var(--ac);color:#111}.btn.solid:hover{background:transparent;color:var(--ac)}
 .hero h1 em{color:var(--ac);font-style:italic}
 .hero h1 span{display:block;overflow:hidden}.hero h1 span i{display:block;font-style:inherit;transform:translateY(105%);animation:up 1.2s var(--ease) .3s forwards}
 .hero h1 span:nth-child(2) i{animation-delay:.45s}
 @keyframes up{to{transform:none}}
-.hud{position:absolute;z-index:10;left:4vw;right:4vw;bottom:5vh;display:flex;align-items:center;gap:20px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
+.hud{position:absolute;z-index:10;left:4vw;right:4vw;bottom:4vh;display:flex;align-items:center;gap:20px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
 .bar{flex:1;height:1px;background:rgba(255,255,255,.25);position:relative;overflow:hidden}
 .bar i{position:absolute;inset:0;background:var(--fg);transform-origin:left;transform:scaleX(0)}
 .bar i.run{animation:fill 5.5s linear forwards}@keyframes fill{to{transform:scaleX(1)}}
 .hud button{background:none;border:1px solid rgba(255,255,255,.35);color:var(--fg);width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1rem;transition:.3s}
 .hud button:hover{background:var(--fg);color:#000}
-#cap{min-width:190px}
+#cap{min-width:190px}@media(max-width:640px){#cap{min-width:0;font-size:.68rem}.htxt{bottom:13vh}.hud button{width:38px;height:38px}}
 /* marquee */
 .mq{border-block:1px solid var(--bd);overflow:hidden;padding:22px 0;white-space:nowrap}
 .mq div{display:inline-block;animation:mq 28s linear infinite;font:italic 400 clamp(1.6rem,4vw,3.2rem) var(--serif);color:var(--mut)}
@@ -60,6 +67,22 @@ input,button.go{font:inherit;color:var(--fg);background:transparent;border:0;bor
 input:focus{outline:0;border-color:var(--ac)}input[type=checkbox]{width:auto;margin-right:8px}label{font-size:.9rem;color:var(--mut)}
 button.go{width:auto;margin-top:12px;border:1px solid var(--ac);color:var(--ac);padding:12px 26px;border-radius:99px;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;font-size:.78rem;transition:.35s}
 button.go:hover{background:var(--ac);color:#000}.row{display:flex;gap:14px;align-items:end}.row input{flex:1}
+#chat{display:flex;flex-direction:column;gap:10px;max-height:420px;min-height:160px;overflow:auto;padding:4px 2px 12px;scroll-behavior:smooth}
+.msg{max-width:85%;padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:.95rem;line-height:1.5;animation:pop .35s var(--ease)}
+.msg.u{align-self:flex-end;background:var(--ac);color:#111;border-bottom-right-radius:4px}
+.msg.b{align-self:flex-start;background:#1a1a20;border:1px solid var(--bd);border-bottom-left-radius:4px}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+.dots span{display:inline-block;width:6px;height:6px;margin:0 2px;border-radius:50%;background:var(--mut);animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}@keyframes blink{50%{opacity:.2}}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 0 4px;scrollbar-width:none}
+.chips button{flex:none;background:transparent;color:var(--fg);border:1px solid var(--bd);border-radius:99px;padding:8px 14px;font:inherit;font-size:.82rem;cursor:pointer;transition:.3s}
+.chips button:hover{border-color:var(--ac);color:var(--ac)}
+.slm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.slm small{color:var(--mut)}
+.link{background:none;border:0;color:var(--ac);font:inherit;font-size:.85rem;cursor:pointer;padding:6px 0;text-decoration:underline}
+.pill{display:inline-block;font-size:.72rem;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);color:var(--mut);margin-left:4px}
+.pill.ok{border-color:#3d7a4a;color:#7fd093}.need{font-size:.75rem;color:var(--mut)}
+#apoie .pix{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+#apoie code{font-size:.72rem;color:var(--mut);word-break:break-all;max-width:60ch;display:block}
 pre{white-space:pre-wrap;font:.86rem/1.55 ui-monospace,Menlo,monospace;color:#cfcbc2;margin-top:18px;max-height:300px;overflow:auto}
 .wide{grid-column:1/-1}
 /* footer */
@@ -74,7 +97,7 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
 </head>
 <body>
 <div id="cur"></div>
-<nav><b>OpenJus</b><div><a href="#camadas">Camadas</a><a href="#ferramentas">Ferramentas</a><a href="https://github.com/thiagollipe-web/open_jus">GitHub</a></div></nav>
+<nav><b>OpenJus</b><div><a href="#camadas">Camadas</a><a href="#ferramentas">Ferramentas</a><a href="#apoie">Apoie</a><a href="#bot">Bot</a></div></nav>
 
 <header class="hero" id="hero" aria-label="Apresentação">
   <!-- Slide 1: balança -->
@@ -83,10 +106,10 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
       <radialGradient id="a" cx="70%" cy="35%" r="80%"><stop offset="0" stop-color="#6b4a1a"/><stop offset=".5" stop-color="#1c1409"/><stop offset="1" stop-color="#050505"/></radialGradient>
       <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d98b"/><stop offset="1" stop-color="#a77a26"/></linearGradient></defs>
       <rect width="1600" height="900" fill="url(#a)"/>
-      <g stroke="url(#g1)" stroke-width="5" fill="none" opacity=".95"><path d="M1060 190v500M900 700h320M1060 190H640M1060 190h420"/><path d="M640 190l-120 300h240zM1480 190l-120 300h240z"/><circle cx="1060" cy="190" r="22" fill="#d9b25f"/>
+      <g transform="translate(-260 40)"><g stroke="url(#g1)" stroke-width="5" fill="none" opacity=".95"><path d="M1060 190v500M900 700h320M1060 190H640M1060 190h420"/><path d="M640 190l-120 300h240zM1480 190l-120 300h240z"/><circle cx="1060" cy="190" r="22" fill="#d9b25f"/>
       <path d="M520 490c0 70 120 70 120 0M760 490c0 70-120 70-120 0" stroke-width="3"/><path d="M1360 490c0 70 120 70 120 0M1600 490c0 70-120 70-120 0" transform="translate(-60 0)" stroke-width="3"/></g>
       <g fill="none" stroke="#d9b25f" stroke-opacity=".12">
-        <circle cx="1060" cy="190" r="260"/><circle cx="1060" cy="190" r="420"/><circle cx="1060" cy="190" r="600"/></g></svg><div class="veil"></div></div>
+        <circle cx="1060" cy="190" r="260"/><circle cx="1060" cy="190" r="420"/><circle cx="1060" cy="190" r="600"/></g></g></svg><div class="veil"></div></div>
   <!-- Slide 2: colunas -->
   <div class="slide" data-cap="02 — Processos">
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
@@ -107,7 +130,11 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
       <g stroke="#f2efe8" stroke-opacity=".3"><path d="M420 410L620 560L800 520L1180 410L1420 480"/></g>
       <g fill="#d9b25f" opacity=".85" font-family="Georgia,serif" font-size="150" font-style="italic"><text x="980" y="300">§</text><text x="240" y="260" font-size="90" opacity=".5">219</text></g></svg><div class="veil"></div></div>
 
-  <h1><span><i>O Direito</i></span><span><i>brasileiro, <em>aberto.</em></i></span></h1>
+  <div class="htxt">
+    <h1><span><i>O Direito</i></span><span><i>brasileiro, <em>aberto.</em></i></span></h1>
+    <p class="sub">Prazos do CPC, termos jurídicos, processos e leis. Grátis, open source e sem IA paga.</p>
+    <div class="ctas"><a class="btn solid" href="#bot">Perguntar ao bot</a><a class="btn" href="https://github.com/thiagollipe-web/open_jus">Ver no GitHub</a></div>
+  </div>
   <div class="hud"><span id="cap">01 — Legislação</span><div class="bar"><i id="prog"></i></div><button id="prev" aria-label="Anterior">←</button><button id="next" aria-label="Próximo">→</button></div>
 </header>
 
@@ -129,20 +156,28 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
   <span class="tag rv">Experimente</span>
   <h2 class="rv">Ferramentas ao vivo.</h2>
   <div class="tools">
-    <div class="card wide rv"><h3>Pergunte ao bot</h3><p>Grátis, roda no navegador e aprende com você. Prazos, termos, processos e leis.</p>
-      <pre id="b-log">Ex.: "Intimado em 07/03/2025, prazo de 15 dias úteis" · "o que significa trânsito em julgado?" · "ensinar: pergunta => resposta"</pre>
-      <div class="row" style="margin-bottom:10px"><button class="go" id="slm-btn" onclick="ativarSLM()">Ativar IA local (≈400 MB)</button><small id="slm-st" style="color:var(--mut);align-self:center">opcional · roda no seu navegador · grátis</small></div>
-      <div class="row"><input id="b-q" placeholder="Digite sua pergunta" aria-label="Pergunta" onkeydown="if(event.key==='Enter')bot()"><button class="go" onclick="bot()">Enviar</button></div></div>
+    <div class="card wide rv" id="bot"><h3>Pergunte ao bot</h3><p>Grátis, roda no seu navegador e aprende com você. <span id="api-st" class="pill">verificando API…</span></p>
+      <div id="chat" aria-live="polite"><div class="msg b">Olá! Pergunte sobre prazos, termos jurídicos, processos ou leis.</div></div>
+      <div class="chips"><button onclick="sug(this)">Intimado em 07/03/2025, prazo de 15 dias úteis</button><button onclick="sug(this)">O que significa trânsito em julgado?</button><button onclick="sug(this)">O que é conclusos para despacho?</button><button onclick="sug(this)">ajuda</button></div>
+      <div class="row"><input id="b-q" placeholder="Digite sua pergunta" aria-label="Pergunta" onkeydown="if(event.key==='Enter')bot()"><button class="go" onclick="bot()">Enviar</button></div>
+      <div class="slm"><button class="link" id="slm-btn" onclick="ativarSLM()">⚡ Ativar IA local</button><small id="slm-st">opcional · ≈400 MB · roda no seu aparelho · grátis</small></div></div>
     <div class="card rv"><h3>Prazos do CPC</h3><p>Arts. 219, 220 e 224. Roda no seu navegador.</p>
       <label>Intimação/publicação<input id="p-ini" type="date"></label><label>Dias<input id="p-dias" type="number" value="15" min="1"></label>
       <label><input id="p-uteis" type="checkbox" checked>Dias úteis</label><br><button class="go" onclick="prazo()">Calcular</button><pre id="p-out"></pre></div>
-    <div class="card rv"><h3>Processo</h3><p>Número CNJ → DataJud (API pública).</p>
+    <div class="card rv"><h3>Processo</h3><p>Número CNJ → DataJud (API pública). <span class="need">precisa da API</span></p>
       <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ"><button class="go" onclick="processo()">Consultar</button><pre id="c-out"></pre></div>
-    <div class="card rv"><h3>Legislação</h3><p>Busca no acervo indexado.</p>
+    <div class="card rv"><h3>Legislação</h3><p>Busca no acervo indexado. <span class="need">precisa da API</span></p>
       <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><pre id="l-out"></pre></div>
-    <div class="card rv"><h3>Juridiquês → português</h3><p>Entenda a movimentação.</p>
+    <div class="card rv"><h3>Juridiquês → português</h3><p>Entenda a movimentação. Funciona offline.</p>
       <input id="t-q" placeholder="ex.: conclusos para despacho" aria-label="Movimento"><button class="go" onclick="traduzir()">Traduzir</button><pre id="t-out"></pre></div>
   </div>
+</section>
+
+<section id="apoie">
+  <span class="tag rv">Apoie</span>
+  <h2 class="rv">Gostou? Ajude o projeto a crescer.</h2>
+  <p class="lead rv">O OpenJus é gratuito e mantido no tempo livre. Qualquer valor via Pix ajuda.</p>
+  <div class="pix rv"><button class="go" id="pix-btn" onclick="copiarPix()">Copiar Pix</button><code id="pix">00020126360014br.gov.bcb.pix0114+55119864553905204000053039865802BR5921Thiago Fillipe Soares6009Sao Paulo62230519daqr25678757257972763047D53</code></div>
 </section>
 
 <footer>
@@ -152,11 +187,19 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
 
 <script>
 const $=id=>document.getElementById(id);
+// Base da API: ?api=https://sua-api no link (fica salva) ou mesma origem.
+const qsApi=new URLSearchParams(location.search).get('api');if(qsApi)localStorage.setItem('oj_api',qsApi);
+const API=(localStorage.getItem('oj_api')||'').replace(/\/$/,'');let API_OK=false;
+const _f=window.fetch.bind(window);window.fetch=(u,o)=>_f(typeof u==='string'&&u.startsWith('/api/')?API+u:u,o);
+fetch('/api/saude').then(r=>r.ok&&r.json()).then(d=>{API_OK=!!d;}).catch(()=>{}).finally(()=>{const e=$('api-st');
+  e.textContent=API_OK?'API conectada':'modo navegador (processos e leis precisam da API)';if(API_OK)e.classList.add('ok')});
+function copiarPix(){navigator.clipboard.writeText($('pix').textContent.trim()).then(()=>{$('pix-btn').textContent='Copiado ✓';setTimeout(()=>$('pix-btn').textContent='Copiar Pix',2000)})}
 const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
 async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
 const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
 const leis=()=>call('l-out','/api/leis?vigentes=true&q='+encodeURIComponent($('l-q').value));
-const traduzir=()=>call('t-out','/api/traduzir?movimento='+encodeURIComponent($('t-q').value));
+function traduzir(){const q=norm($('t-q').value),k=Object.keys(GLOS).sort((a,b)=>b.length-a.length).find(k=>q.includes(norm(k)));
+  show('t-out',k?k[0].toUpperCase()+k.slice(1)+': '+GLOS[k]:'Sem tradução cadastrada para esse termo ainda.')}
 // Prazo no navegador (espelha src/openjus/prazos.py; funciona sem API)
 const D=864e5,iso=d=>d.toISOString().slice(0,10),add=(d,n)=>new Date(d.getTime()+n*D);
 function pascoa(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),dia=(h+l-7*m+114)%31+1;return new Date(Date.UTC(y,mo-1,dia))}
@@ -194,7 +237,7 @@ async function ativarSLM(){
     const {pipeline}=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
     SLM=await pipeline('text-generation','onnx-community/Qwen2.5-0.5B-Instruct',{dtype:'q4',device:navigator.gpu?'webgpu':'wasm',
       progress_callback:p=>{if(p.status==='progress'&&p.total)st.textContent='baixando '+(p.file||'').split('/').pop()+' '+Math.round(p.loaded/p.total*100)+'%'}});
-    st.textContent='✅ IA local ativa';bt.textContent='IA local ativa';
+    st.textContent='IA local ativa ✓';bt.textContent='⚡ IA local ativa';
   }catch(e){st.textContent='⚠️ não consegui carregar a IA local ('+e.message+'). O bot segue por regras.';bt.disabled=false}
   slmLoading=false}
 async function contexto(q){
@@ -233,10 +276,13 @@ async function responder(q){
   try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensagens:[{role:'user',content:q}]})});
     if(r.ok){const d=await r.json();return d.resposta}}catch(e){}
   return 'Ainda não sei responder isso. Me ensine: "ensinar: pergunta => resposta".\n\n'+AJUDA}
+function addMsg(t,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=t;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
+function sug(b){$('b-q').value=b.textContent;bot()}
 async function bot(){
-  const q=$('b-q').value.trim();if(!q)return;$('b-q').value='';
-  const L=$('b-log');L.textContent+='\n\n🧑 '+q;
-  L.textContent+='\n🤖 '+await responder(q);L.scrollTop=L.scrollHeight;
+  const q=$('b-q').value.trim();if(!q)return;$('b-q').value='';addMsg(q,'u');
+  const t=addMsg('','b');t.innerHTML='<span class="dots"><span></span><span></span><span></span></span>';
+  const [r]=await Promise.all([responder(q),new Promise(ok=>setTimeout(ok,350))]);
+  t.textContent=r;$('chat').scrollTop=1e9;
 }
 $('p-ini').valueAsDate=new Date();
 // Slider com wipe (clip-path) + push parallax
@@ -252,6 +298,7 @@ $('p-ini').valueAsDate=new Date();
 // Reveal on scroll
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');io.unobserve(e.target)}}),{threshold:.15});
 document.querySelectorAll('.rv').forEach((el,k)=>{el.style.transitionDelay=(k%4)*80+'ms';io.observe(el)});
+addEventListener('scroll',()=>document.querySelector('nav').classList.toggle('s',scrollY>40),{passive:true});
 // Cursor
 const cur=$('cur');addEventListener('pointermove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px'});
 document.querySelectorAll('a,button,input,.layer').forEach(el=>{el.addEventListener('pointerenter',()=>cur.classList.add('big'));el.addEventListener('pointerleave',()=>cur.classList.remove('big'))});
