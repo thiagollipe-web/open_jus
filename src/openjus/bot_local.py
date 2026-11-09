@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from . import aprendizado, leis, servico, slm
+from . import aprendizado, ia_livre, leis, servico, slm
 from .cnj import CNJError
 from .config import get_settings
 from .datajud import DataJudError
@@ -125,8 +125,17 @@ async def conversar_local(texto: str) -> dict:
         out = {"resposta": AJUDA, "ferramentas": []}
     else:
         out = _lei(texto)
-        resumo = await slm.resumir(texto, out.pop("_trechos", []))  # SLM opcional, ancorado nos trechos
-        if resumo:
+        trechos = out.pop("_trechos", [])
+        if ia_livre.configurada():
+            ia = await ia_livre.perguntar(texto, trechos)
+            if ia and trechos:
+                out["resposta"] = f"{ia}\n(resumo por IA; confira os trechos oficiais)\n\n" + out["resposta"]
+                out["ferramentas"] = [*out["ferramentas"], "ia"]
+            elif ia:
+                out = {"resposta": f"{ia}\n\n⚠️ Resposta geral de IA, sem fonte legal anexada. "
+                                   "Confirme com um advogado ou a Defensoria Pública.",
+                       "ferramentas": ["ia"]}
+        elif resumo := await slm.resumir(texto, trechos):  # SLM local opcional (Ollama)
             out["resposta"] = (f"{resumo}\n(resumo por IA local; confira os trechos oficiais)\n\n"
                                + out["resposta"])
             out["ferramentas"] = [*out["ferramentas"], "slm"]

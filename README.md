@@ -108,6 +108,23 @@ Um modelo pequeno **só reescreve em linguagem simples o que as fontes já troux
 
 Só há limite por IP (`RATE_LIMIT_PER_MIN`, padrão 60 → 429). Não entende linguagem livre complexa: fora desses casos, mostra a ajuda.
 
+### 🤖 IA gratuita (opcional, no servidor)
+Funciona com **qualquer API compatível com OpenAI** que tenha plano grátis (Groq, OpenRouter modelos `:free`, Gemini no endpoint compatível, ou um agregador como o freellmapi). A chave fica **só no servidor**, nunca no site.
+
+```env
+FREE_LLM_BASE_URL=https://api.groq.com/openai/v1   # exemplo
+FREE_LLM_API_KEY=sua_chave
+FREE_LLM_MODEL=nome-do-modelo
+```
+Com trechos de lei encontrados, a IA resume ancorada neles. Sem trechos, dá só orientação geral, marcada como **sem fonte**. Se o plano grátis estourar o limite, o bot volta às regras.
+
+### 🚀 Deploy grátis no Render
+1. Em [render.com](https://render.com): **New + → Blueprint** → escolha este repositório (usa `render.yaml`).
+2. Preencha `DATAJUD_API_KEY` e as variáveis `FREE_LLM_*`.
+3. Copie a URL gerada (ex.: `https://openjus-api.onrender.com`) e coloque em `site/index.html`, na tag `<meta name="openjus-api">`.
+
+No plano grátis o serviço "dorme" após inatividade (a 1ª resposta demora) e o disco é temporário (ensinamentos e histórico somem a cada reinício).
+
 ### Opcional: bot com LLM pago
 `POST /api/chat-llm` (Claude) é opcional: `pip install openjus[llm]` + `ANTHROPIC_API_KEY`. Exige chave de acesso por usuário (`X-OpenJus-Key`, emitida em `POST /admin/chaves`), tem franquia grátis diária (`FREE_DAILY_TOKENS`) e créditos pré-pagos (`POST /admin/creditos`); sem saldo → 402.
 

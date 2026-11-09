@@ -1,0 +1,26 @@
+# Deploy grátis da API no Render: New + > Blueprint > selecione este repositório.
+services:
+  - type: web
+    name: openjus-api
+    runtime: python
+    plan: free
+    buildCommand: >-
+      pip install -r requirements.txt && pip install . &&
+      (git clone --depth 1 https://github.com/ctresb/leis data/leis && openjus-ingest || echo "acervo de leis indisponível; seguindo sem índice")
+    startCommand: uvicorn openjus.api:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /api/saude
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: CORS_ORIGINS
+        value: https://thiagollipe-web.github.io
+      - key: DATAJUD_API_KEY
+        sync: false
+      - key: FREE_LLM_BASE_URL
+        sync: false
+      - key: FREE_LLM_API_KEY
+        sync: false
+      - key: FREE_LLM_MODEL
+        sync: false
+      - key: ADMIN_TOKEN
+        generateValue: true

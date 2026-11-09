@@ -9,6 +9,7 @@ from pathlib import Path
 import structlog
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -23,6 +24,13 @@ from .referencias import CONECTORES
 log = structlog.get_logger()
 app = FastAPI(title="OpenJus", version="0.1.0",
               description="Bot jurídico open source — informativo, não substitui advogado.")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in get_settings().cors_origins.split(",") if o.strip()],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-OpenJus-Key"],
+)
 
 SITE_DIR = Path(__file__).resolve().parents[2] / "site"
 

@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OpenJus — O Direito brasileiro, aberto.</title>
+<!-- Endereço da API hospedada (ex.: https://openjus-api.onrender.com). Vazio = mesma origem. -->
+<meta name="openjus-api" content="">
 <meta name="description" content="Bot jurídico open source: legislação, processos do DataJud e prazos do CPC.">
 <style>
 :root{--ink:#0a0a0c;--ink2:#121216;--fg:#f2efe8;--mut:#8d8a84;--ac:#d9b25f;--bd:#26262c;--ease:cubic-bezier(.77,0,.18,1);
@@ -189,7 +191,7 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
 const $=id=>document.getElementById(id);
 // Base da API: ?api=https://sua-api no link (fica salva) ou mesma origem.
 const qsApi=new URLSearchParams(location.search).get('api');if(qsApi)localStorage.setItem('oj_api',qsApi);
-const API=(localStorage.getItem('oj_api')||'').replace(/\/$/,'');let API_OK=false;
+const API=(localStorage.getItem('oj_api')||document.querySelector('meta[name=openjus-api]').content||'').replace(/\/$/,'');let API_OK=false;
 const _f=window.fetch.bind(window);window.fetch=(u,o)=>_f(typeof u==='string'&&u.startsWith('/api/')?API+u:u,o);
 fetch('/api/saude').then(r=>r.ok&&r.json()).then(d=>{API_OK=!!d;}).catch(()=>{}).finally(()=>{const e=$('api-st');
   e.textContent=API_OK?'API conectada':'modo navegador (processos e leis precisam da API)';if(API_OK)e.classList.add('ok')});

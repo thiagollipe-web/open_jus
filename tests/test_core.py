@@ -244,3 +244,39 @@ async def test_slm_ollama_ancorado(monkeypatch):
     monkeypatch.setenv("OLLAMA_URL", "")
     get_settings.cache_clear()
     assert await slm.resumir("p", ["x"]) is None
+
+
+async def test_ia_livre_openai_compat(monkeypatch, tmp_path):
+    import httpx
+
+    from openjus import ia_livre
+    from openjus.config import get_settings
+
+    monkeypatch.setenv("FREE_LLM_BASE_URL", "https://llm.test/v1")
+    monkeypatch.setenv("FREE_LLM_MODEL", "modelo-gratis")
+    monkeypatch.setenv("FREE_LLM_API_KEY", "k")
+    get_settings.cache_clear()
+    visto = {}
+
+    def h(req: httpx.Request) -> httpx.Response:
+        visto["url"], visto["auth"], visto["body"] = str(req.url), req.headers.get("authorization"), req.content.decode()
+        return httpx.Response(200, json={"choices": [{"message": {"content": "Explicação simples."}}]})
+
+    c = httpx.AsyncClient(transport=httpx.MockTransport(h))
+    assert await ia_livre.perguntar("o que é usucapião?", ["trecho X"], client=c) == "Explicação simples."
+    assert visto["url"] == "https://llm.test/v1/chat/completions" and visto["auth"] == "Bearer k"
+    assert "trecho X" in visto["body"] and "modelo-gratis" in visto["body"]
+    c429 = httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(429)))
+    assert await ia_livre.perguntar("p", [], client=c429) is None  # limite grátis -> segue por regras
+
+    # integrado ao bot: sem índice de leis, responde orientação geral marcada como sem fonte
+    from openjus import bot_local
+
+    async def fake(p, t, client=None):
+        return "Orientação geral."
+    monkeypatch.setattr(ia_livre, "perguntar", fake)
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "nada.db"))
+    get_settings.cache_clear()
+    r = await bot_local.conversar_local("posso ser despejado sem aviso?")
+    assert r["ferramentas"] == ["ia"] and "sem fonte" in r["resposta"]
+    get_settings.cache_clear()
