@@ -99,8 +99,11 @@ Issues e PRs são bem-vindos. Antes de abrir um PR: `uv run ruff check src tests
 
 O OpenJus é gratuito e mantido no tempo livre. Se ele te ajudou e você quiser contribuir, aceito doações via **Pix**:
 
-<!-- TODO(dono do repo): troque abaixo pela sua chave Pix -->
-**Chave Pix:** `SUA_CHAVE_PIX_AQUI`
+**Pix Copia e Cola** (titular: Thiago Fillipe Soares):
+
+```
+00020126360014br.gov.bcb.pix0114+55119864553905204000053039865802BR5921Thiago Fillipe Soares6009Sao Paulo62230519daqr25678757257972763047D53
+```
 
 Ajudar também vale: dê uma ⭐ no repositório, divulgue e envie sugestões.
 
