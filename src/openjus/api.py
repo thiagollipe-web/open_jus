@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import bot, cotas, leis, servico
+from . import bot, bot_local, cotas, leis, servico
 from .cnj import CNJError, parse_cnj
 from .config import get_settings
 from .datajud import DataJudError
@@ -49,7 +49,17 @@ async def limitar_taxa(request: Request, call_next):
 
 
 @app.post("/api/chat")
-async def chat(c: ChatIn, x_openjus_key: str = Header(default="")) -> dict:
+async def chat(c: ChatIn) -> dict:
+    """Bot gratuito (sem LLM, sem chave): só limite por IP."""
+    ultimo = next((str(m.get("content", "")) for m in reversed(c.mensagens)
+                   if m.get("role") == "user"), "")
+    if len(ultimo) > 1000:
+        raise HTTPException(413, "Mensagem muito longa.")
+    return await bot_local.conversar_local(ultimo)
+
+
+@app.post("/api/chat-llm")
+async def chat_llm(c: ChatIn, x_openjus_key: str = Header(default="")) -> dict:
     s = get_settings()
     if sum(len(str(m.get("content", ""))) for m in c.mensagens) > 8000:
         raise HTTPException(413, "Conversa muito longa. Comece uma nova.")

@@ -141,14 +141,42 @@ def test_api_chat_402_e_429(tmp_path, monkeypatch):
     get_settings.cache_clear()
     c = TestClient(api.app)
     body = {"mensagens": [{"role": "user", "content": "oi"}]}
-    assert c.post("/api/chat", json=body).status_code == 401
+    assert c.post("/api/chat-llm", json=body).status_code == 401
     assert c.post("/admin/chaves", json={}).status_code == 403
     k = c.post("/admin/chaves", json={}, headers={"X-Admin-Token": "adm"}).json()["chave"]
-    r = c.post("/api/chat", json=body, headers={"X-OpenJus-Key": k})
+    r = c.post("/api/chat-llm", json=body, headers={"X-OpenJus-Key": k})
     assert r.status_code == 402  # sem franquia e sem créditos
     monkeypatch.setenv("RATE_LIMIT_PER_MIN", "2")
     get_settings.cache_clear()
     cotas._JANELA.clear()
     codes = [c.get("/api/saude").status_code for _ in range(3)]
     assert codes == [200, 200, 429]
+    get_settings.cache_clear()
+
+
+async def test_bot_local_prazo_termo_e_ajuda():
+    from openjus.bot_local import conversar_local
+
+    r = await conversar_local("Fui intimado em 07/03/2025 e tenho prazo de 15 dias úteis")
+    assert "28/03/2025" in r["resposta"] and r["ferramentas"] == ["calcular_prazo"]
+    r = await conversar_local("o que significa trânsito em julgado?")
+    assert "definitiva" in r["resposta"]
+    r = await conversar_local("prazo de 10 dias")  # falta a data
+    assert "data" in r["resposta"].lower()
+    r = await conversar_local("0000001-00.2020.8.26.0100")  # DV inválido
+    assert "inválido" in r["resposta"]
+    assert (await conversar_local(""))["resposta"].startswith("Posso ajudar")
+
+
+def test_api_chat_gratis_sem_chave(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from openjus import api
+    from openjus.config import get_settings
+
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "z.db"))
+    get_settings.cache_clear()
+    r = TestClient(api.app).post("/api/chat", json={"mensagens": [
+        {"role": "user", "content": "prazo de 5 dias a partir de 10/03/2025"}]})
+    assert r.status_code == 200 and "17/03/2025" in r.json()["resposta"]
     get_settings.cache_clear()

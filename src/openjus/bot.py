@@ -1,4 +1,4 @@
-"""Bot inteligente: Claude interpreta a pergunta e chama as ferramentas determinísticas.
+"""Bot OPCIONAL com LLM (pago): Claude interpreta a pergunta e chama as ferramentas determinísticas.
 
 O LLM nunca calcula prazo nem cita lei de memória: usa `calcular_prazo` e `buscar_legislacao`.
 """
@@ -8,8 +8,6 @@ from __future__ import annotations
 import json
 from datetime import date
 from typing import Any
-
-from anthropic import AsyncAnthropic
 
 from . import leis, servico
 from .config import get_settings
@@ -68,12 +66,14 @@ async def executar_ferramenta(nome: str, args: dict[str, Any]) -> Any:
         return {"erro": f"{type(e).__name__}: {e}"}
 
 
-async def conversar(mensagens: list[dict[str, Any]], client: AsyncAnthropic | None = None,
+async def conversar(mensagens: list[dict[str, Any]], client: Any = None,
                     max_passos: int = 6) -> dict[str, Any]:
     s = get_settings()
     if client is None:
         if not s.anthropic_api_key:
             raise RuntimeError("ANTHROPIC_API_KEY não configurada (veja .env.example).")
+        from anthropic import AsyncAnthropic  # extra opcional: pip install openjus[llm]
+
         client = AsyncAnthropic(api_key=s.anthropic_api_key)
     msgs = list(mensagens)
     usadas: list[str] = []

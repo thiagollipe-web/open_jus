@@ -23,7 +23,7 @@ Legislação, processos do DataJud/CNJ e prazos do CPC — numa API, num servido
 | 🗣️ | **Juridiquês → português** | Traduz movimentações e remove clichês de IA |
 | ⏱️ | **Prazos do CPC** | Arts. 219, 220 e 224, com calendário forense offline |
 | 🔒 | **LGPD** | Segredo de justiça não é gravado; CPFs são mascarados (Res. CNJ 331/2020) |
-| 🧠 | **Bot inteligente** | Claude interpreta a pergunta e chama as ferramentas (prazo, leis, processo); nunca calcula prazo nem cita lei de memória. Endpoint `POST /api/chat`, requer `ANTHROPIC_API_KEY` |
+| 🧠 | **Bot gratuito** | Responde prazos, processos, termos e leis por regras, sem LLM e sem API paga (`POST /api/chat`) |
 | 🤖 | **Servidor MCP** | Use no Claude Desktop, Cursor e outros agentes |
 
 ## 🧱 Arquitetura em 4 camadas
@@ -84,15 +84,21 @@ Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `expli
 | GET | `/api/traduzir?movimento=` | Explica uma movimentação |
 | GET | `/api/conectores` | Lista os conectores do ecossistema |
 
-## 💳 Limites e cobrança do bot
+## 🆓 Bot gratuito (sem LLM, sem API paga)
 
-`/api/chat` gasta tokens pagos da Anthropic, então é protegido:
+`POST /api/chat` **não usa Claude, Azure nem qualquer API paga**. Ele interpreta a pergunta por regras e chama as ferramentas locais:
 
-- **Chave de acesso** por usuário (`X-OpenJus-Key`), emitida pelo admin: `POST /admin/chaves` com `X-Admin-Token`.
-- **Franquia grátis diária** (`FREE_DAILY_TOKENS`, padrão 5000). Passou disso, o uso sai dos **créditos pré-pagos**; sem saldo, a API responde **402**.
-- **Créditos:** o admin adiciona após receber o pagamento (Pix): `POST /admin/creditos {"chave": "...", "tokens": 100000}`. Não há cobrança automática ainda.
-- **Limite por IP** em `/api/*` (`RATE_LIMIT_PER_MIN`, padrão 60 → **429**) e teto de tamanho da conversa.
-- Defina um **limite de gasto** no console da Anthropic como segunda trava.
+| Você escreve | O bot faz |
+|---|---|
+| "intimado em 07/03/2025, prazo de 15 dias úteis" | calcula o prazo (CPC 219/220/224, calendário offline) |
+| número CNJ | consulta a **API pública e gratuita do DataJud** e explica as movimentações |
+| "o que significa trânsito em julgado?" | usa o glossário offline |
+| pergunta sobre lei | busca no índice local do `ctresb/leis` e cita título/URN |
+
+Só há limite por IP (`RATE_LIMIT_PER_MIN`, padrão 60 → 429). Não entende linguagem livre complexa: fora desses casos, mostra a ajuda.
+
+### Opcional: bot com LLM pago
+`POST /api/chat-llm` (Claude) é opcional: `pip install openjus[llm]` + `ANTHROPIC_API_KEY`. Exige chave de acesso por usuário (`X-OpenJus-Key`, emitida em `POST /admin/chaves`), tem franquia grátis diária (`FREE_DAILY_TOKENS`) e créditos pré-pagos (`POST /admin/creditos`); sem saldo → 402.
 
 ## ⚠️ Limitações
 

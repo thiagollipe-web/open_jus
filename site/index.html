@@ -29,8 +29,7 @@ a{color:var(--ac)}
 <main>
   <section style="grid-column:1/-1">
     <h2>🤖 Pergunte ao bot</h2>
-    <pre id="b-log" style="min-height:90px">Ex.: "Intimado em 07/03/2025 para contestar em 15 dias úteis. Quando vence?"</pre>
-    <input id="b-key" type="password" placeholder="Sua chave de acesso (oj_...)" autocomplete="off">
+    <pre id="b-log" style="min-height:90px">Grátis, sem IA paga. Ex.: "Intimado em 07/03/2025, prazo de 15 dias úteis" · "o que significa trânsito em julgado?" · número CNJ · pergunta sobre lei</pre>
     <div class="row"><input id="b-q" placeholder="Sua pergunta jurídica" onkeydown="if(event.key==='Enter')bot()"><button style="width:auto" onclick="bot()">Enviar</button></div>
   </section>
   <section>
@@ -92,11 +91,11 @@ const hist=[];
 async function bot(){
   const q=$('b-q').value.trim();if(!q)return;$('b-q').value='';hist.push({role:'user',content:q});
   $('b-log').textContent+='\n\n🧑 '+q+'\n⏳ ...';
-  try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-OpenJus-Key':$('b-key').value},body:JSON.stringify({mensagens:hist})});
+  try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensagens:hist})});
     const d=await r.json();if(!r.ok)throw new Error(d.detail||r.status);
     hist.push({role:'assistant',content:d.resposta});
-    $('b-log').textContent=$('b-log').textContent.replace(/\n⏳ \.\.\.$/,'')+'\n🤖 '+d.resposta+(d.ferramentas.length?'\n   (ferramentas: '+d.ferramentas.join(', ')+')':'')+'\n   saldo: grátis hoje '+d.saldo.gratis_restante+' tokens · créditos '+d.saldo.creditos;
-  }catch(e){hist.pop();$('b-log').textContent=$('b-log').textContent.replace(/\n⏳ \.\.\.$/,'')+'\n⚠️ '+e.message+' (sem franquia? adquira créditos; ou API offline)'}
+    $('b-log').textContent=$('b-log').textContent.replace(/\n⏳ \.\.\.$/,'')+'\n🤖 '+d.resposta+(d.ferramentas.length?'\n   (ferramentas: '+d.ferramentas.join(', ')+')':'');
+  }catch(e){hist.pop();$('b-log').textContent=$('b-log').textContent.replace(/\n⏳ \.\.\.$/,'')+'\n⚠️ '+e.message+' (API offline? rode openjus-api)'}
 }
 $('p-ini').valueAsDate=new Date();
 </script>
