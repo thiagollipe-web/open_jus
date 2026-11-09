@@ -10,12 +10,18 @@ from __future__ import annotations
 import httpx
 
 from .config import get_settings
+from .linguagem import remover_cliches
 
 SISTEMA = (
-    "Você é o OpenJus, assistente jurídico informativo do Brasil. Responda em português simples, "
-    "curto e direto. Se houver CONTEXTO, use SOMENTE ele e não acrescente leis. Se não houver "
-    "contexto, dê só orientação geral, NÃO cite números de artigos, leis ou prazos específicos e "
-    "recomende confirmar com um advogado ou a Defensoria Pública. Nunca invente fatos."
+    "Você é o OpenJus, assistente jurídico informativo do Brasil. Regras OBRIGATÓRIAS:\n"
+    "1. Responda SÓ o que foi perguntado, em no máximo 4 frases curtas, em português simples.\n"
+    "2. Formato: uma frase de resposta direta; depois, se útil, até 2 tópicos com '•' do que fazer.\n"
+    "3. Sem introdução, sem repetir a pergunta, sem conclusão, sem 'espero ter ajudado'.\n"
+    "4. Se houver CONTEXTO, use SOMENTE ele. Sem contexto, NÃO cite números de artigos, leis ou "
+    "prazos; dê orientação geral e diga para confirmar com advogado ou Defensoria Pública.\n"
+    "5. Se a pergunta não for sobre Direito brasileiro, diga em 1 frase que só ajuda com temas "
+    "jurídicos.\n"
+    "6. Nunca invente fatos. Se não souber, diga: 'Não sei responder com segurança.'"
 )
 
 
@@ -30,7 +36,7 @@ async def perguntar(pergunta: str, trechos: list[str],
     if not configurada():
         return None
     user = (("CONTEXTO:\n- " + "\n- ".join(trechos) + "\n\n") if trechos else "") + f"PERGUNTA: {pergunta}"
-    body = {"model": s.free_llm_model, "temperature": 0.2, "max_tokens": 500,
+    body = {"model": s.free_llm_model, "temperature": 0, "max_tokens": 280,
             "messages": [{"role": "system", "content": SISTEMA}, {"role": "user", "content": user}]}
     headers = {"Authorization": f"Bearer {s.free_llm_api_key}"} if s.free_llm_api_key else {}
     c = client or httpx.AsyncClient(timeout=45)
@@ -43,4 +49,13 @@ async def perguntar(pergunta: str, trechos: list[str],
     finally:
         if client is None:
             await c.aclose()
-    return txt or None
+    return enxugar(txt) or None
+
+
+def enxugar(txt: str, max_chars: int = 900) -> str:
+    """Remove clichês e corta respostas longas na última frase completa."""
+    txt = remover_cliches(txt).strip()
+    if len(txt) <= max_chars:
+        return txt
+    corte = max(txt.rfind(". ", 0, max_chars), txt.rfind("\n", 0, max_chars))
+    return (txt[: corte + 1] if corte > 0 else txt[:max_chars]).strip()

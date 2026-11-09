@@ -38,6 +38,10 @@ CLICHES_IA = [
     r"\bvale (ressaltar|destacar) que\s*",
     r"\bnão sou (um )?advogad[oa][^.]*\.\s*",
     r"\bespero que isso ajude[^.]*\.?\s*",
+    r"\bespero ter ajudado[^.]*\.?\s*",
+    r"\b(ótima|excelente|boa) pergunta[!.,]?\s*",
+    r"\bclaro[!,]\s*",
+    r"\bfico à disposição[^.]*\.?\s*",
 ]
 
 

@@ -290,3 +290,12 @@ def test_raiz_redireciona_sem_site(monkeypatch, tmp_path):
     monkeypatch.setattr(api, "SITE_DIR", tmp_path)  # simula pacote instalado sem site/
     r = TestClient(api.app).get("/", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"].endswith("/open_jus/")
+
+
+def test_ia_enxuga_resposta():
+    from openjus.ia_livre import SISTEMA, enxugar
+
+    longo = "Ótima pergunta! " + "Frase longa sobre o tema. " * 60 + "Espero ter ajudado."
+    out = enxugar(longo)
+    assert len(out) <= 900 and out.endswith(".") and "Ótima pergunta" not in out
+    assert "4 frases" in SISTEMA and "só ajuda com temas" in SISTEMA
