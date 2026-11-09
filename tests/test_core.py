@@ -280,3 +280,13 @@ async def test_ia_livre_openai_compat(monkeypatch, tmp_path):
     r = await bot_local.conversar_local("posso ser despejado sem aviso?")
     assert r["ferramentas"] == ["ia"] and "sem fonte" in r["resposta"]
     get_settings.cache_clear()
+
+
+def test_raiz_redireciona_sem_site(monkeypatch, tmp_path):
+    from fastapi.testclient import TestClient
+
+    from openjus import api
+
+    monkeypatch.setattr(api, "SITE_DIR", tmp_path)  # simula pacote instalado sem site/
+    r = TestClient(api.app).get("/", follow_redirects=False)
+    assert r.status_code == 307 and r.headers["location"].endswith("/open_jus/")

@@ -10,7 +10,7 @@ import structlog
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -193,9 +193,15 @@ def conectores() -> dict:
     return {k: v.__dict__ for k, v in CONECTORES.items()}
 
 
-@app.get("/")
-def index() -> FileResponse:
-    return FileResponse(SITE_DIR / "index.html")
+SITE_PUBLICO = "https://thiagollipe-web.github.io/open_jus/"
+
+
+@app.get("/", response_model=None)
+def index() -> FileResponse | RedirectResponse:
+    # Instalado como pacote (ex.: Render) a pasta site/ não vem junto: manda para o site público.
+    if (SITE_DIR / "index.html").exists():
+        return FileResponse(SITE_DIR / "index.html")
+    return RedirectResponse(SITE_PUBLICO)
 
 
 if SITE_DIR.exists():
