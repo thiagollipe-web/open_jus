@@ -11,6 +11,10 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"
+    free_llm_base_url: str = ""
+    free_llm_api_key: str = ""
+    free_llm_model: str = ""
+    cors_origins: str = "https://thiagollipe-web.github.io"
     ollama_url: str = ""
     ollama_model: str = "qwen2.5:0.5b"
     admin_token: str = ""
