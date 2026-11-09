@@ -180,3 +180,42 @@ def test_api_chat_gratis_sem_chave(tmp_path, monkeypatch):
         {"role": "user", "content": "prazo de 5 dias a partir de 10/03/2025"}]})
     assert r.status_code == 200 and "17/03/2025" in r.json()["resposta"]
     get_settings.cache_clear()
+
+
+async def test_aprendizado_recorrente(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from openjus import api, aprendizado
+    from openjus.bot_local import conversar_local
+    from openjus.config import get_settings
+    from openjus.leis import ingerir
+
+    d = tmp_path / "leis"
+    d.mkdir()
+    (d / "x.md").write_text("---\ntitulo: X\nsituacao: vigente\n---\nArt. 1 Nada relevante.", encoding="utf-8")
+    db = tmp_path / "l.db"
+    ingerir(d, db)
+    monkeypatch.setenv("DB_PATH", str(db))
+    monkeypatch.setenv("ADMIN_TOKEN", "adm")
+    get_settings.cache_clear()
+    p = "Qual o horário de atendimento do fórum trabalhista?"
+    assert "ensinar:" in (await conversar_local(p))["resposta"]  # não sabe -> lacuna
+    assert aprendizado.lacunas(db)[0]["n"] == 1
+    c = TestClient(api.app)
+    assert c.post("/api/ensinar", json={"pergunta": p, "resposta": "Consulte o site do TRT."}).json()["status"] == "pendente"
+    assert "ensinar:" in (await conversar_local(p))["resposta"]  # pendente não vale
+    pend = c.get("/admin/pendentes", headers={"X-Admin-Token": "adm"}).json()["pendentes"]
+    assert c.post("/admin/aprovar", json={"id": pend[0]["id"]}, headers={"X-Admin-Token": "adm"}).status_code == 200
+    r = await conversar_local("horário de atendimento do fórum trabalhista")
+    assert "TRT" in r["resposta"] and r["ferramentas"] == ["aprendizado"]  # aprendeu
+    get_settings.cache_clear()
+
+
+def test_glossario_json_do_site_em_dia():
+    import json
+    from pathlib import Path
+
+    from openjus.linguagem import GLOSSARIO
+
+    j = json.loads((Path(__file__).parents[1] / "site" / "glossario.json").read_text(encoding="utf-8"))
+    assert j == GLOSSARIO  # regenere site/glossario.json se mudar o glossário

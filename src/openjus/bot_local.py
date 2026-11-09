@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from . import leis, servico
+from . import aprendizado, leis, servico
 from .cnj import CNJError
 from .config import get_settings
 from .datajud import DataJudError
@@ -98,8 +98,10 @@ def _lei(texto: str) -> dict:
                 "ferramentas": []}
     achados = leis.buscar(db, texto, limite=3, apenas_vigentes=True)
     if not achados:
-        return {"resposta": "Não encontrei trecho de lei sobre isso no acervo. "
-                            "Tente outras palavras.\n\n" + AJUDA, "ferramentas": ["buscar_legislacao"]}
+        aprendizado.registrar_lacuna(db, texto)  # vira pauta para alguém ensinar
+        return {"resposta": "Ainda não sei responder isso. Você pode me ensinar com "
+                            "`ensinar: pergunta => resposta` (um moderador revisa antes de eu usar).\n\n"
+                            + AJUDA, "ferramentas": ["buscar_legislacao"]}
     partes = [f"• {t.titulo}{f' ({t.urn})' if t.urn else ''}:\n  {t.texto[:400].strip()}…"
               for t in achados]
     return {"resposta": "Trechos encontrados (confira o texto oficial):\n" + "\n".join(partes),
@@ -117,6 +119,8 @@ async def conversar_local(texto: str) -> dict:
         out = _prazo(texto)
     elif t := _termo(texto):
         out = t
+    elif (db := get_settings().db_path).exists() and (a := aprendizado.buscar(db, texto)):
+        out = {"resposta": a + "\n(resposta aprendida e aprovada por moderador)", "ferramentas": ["aprendizado"]}
     elif re.search(r"\b(ajuda|oi|olá|ola|menu)\b", texto, re.IGNORECASE) and len(texto) < 20:
         out = {"resposta": AJUDA, "ferramentas": []}
     else:

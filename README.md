@@ -95,6 +95,11 @@ Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `expli
 | "o que significa trânsito em julgado?" | usa o glossário offline |
 | pergunta sobre lei | busca no índice local do `ctresb/leis` e cita título/URN |
 
+### 🧠 Aprendizado recorrente (sem LLM)
+- **No navegador:** o bot roda em JavaScript (prazos, glossário, aprendizado), então **funciona no GitHub Pages sem servidor**. Ensine com `ensinar: pergunta => resposta`; fica salvo no seu navegador (`esquecer tudo` apaga).
+- **No servidor:** o ensinamento vai para `POST /api/ensinar` como **pendente**. Um admin revisa (`GET /admin/pendentes`) e aprova (`POST /admin/aprovar`); só então o bot passa a responder aquilo para todos, por similaridade de texto. Perguntas sem resposta viram **lacunas** (ordenadas por frequência) para você saber o que ensinar.
+- A moderação evita que alguém envenene o bot com informação jurídica errada.
+
 Só há limite por IP (`RATE_LIMIT_PER_MIN`, padrão 60 → 429). Não entende linguagem livre complexa: fora desses casos, mostra a ajuda.
 
 ### Opcional: bot com LLM pago

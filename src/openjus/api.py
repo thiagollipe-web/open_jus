@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import bot, bot_local, cotas, leis, servico
+from . import aprendizado, bot, bot_local, cotas, leis, servico
 from .cnj import CNJError, parse_cnj
 from .config import get_settings
 from .datajud import DataJudError
@@ -56,6 +56,37 @@ async def chat(c: ChatIn) -> dict:
     if len(ultimo) > 1000:
         raise HTTPException(413, "Mensagem muito longa.")
     return await bot_local.conversar_local(ultimo)
+
+
+class Ensino(BaseModel):
+    pergunta: str = Field(min_length=5, max_length=300)
+    resposta: str = Field(min_length=5, max_length=1500)
+
+
+@app.post("/api/ensinar")
+def ensinar(e: Ensino) -> dict:
+    """Recebe ensinamento; só passa a valer depois da aprovação de um admin."""
+    aprendizado.ensinar(get_settings().db_path, e.pergunta, e.resposta)
+    return {"status": "pendente", "mensagem": "Obrigado! Um moderador vai revisar."}
+
+
+@app.get("/admin/pendentes")
+def pendentes(x_admin_token: str = Header(default="")) -> dict:
+    _admin(x_admin_token)
+    db = get_settings().db_path
+    return {"pendentes": aprendizado.pendentes(db), "lacunas": aprendizado.lacunas(db)}
+
+
+class Aprovar(BaseModel):
+    id: int
+
+
+@app.post("/admin/aprovar")
+def aprovar(a: Aprovar, x_admin_token: str = Header(default="")) -> dict:
+    _admin(x_admin_token)
+    if not aprendizado.aprovar(get_settings().db_path, a.id):
+        raise HTTPException(404, "Item não encontrado.")
+    return {"status": "aprovado"}
 
 
 @app.post("/api/chat-llm")
