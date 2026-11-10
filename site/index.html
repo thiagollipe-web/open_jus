@@ -210,7 +210,7 @@ function copiarPix(){navigator.clipboard.writeText($('pix').textContent.trim()).
 const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
 async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
 const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
-const leis=()=>call('l-out','/api/leis?vigentes=true&q='+encodeURIComponent($('l-q').value));
+const leis=()=>call('l-out','/api/leis?q='+encodeURIComponent($('l-q').value));
 function traduzir(){const q=norm($('t-q').value),k=Object.keys(GLOS).sort((a,b)=>b.length-a.length).find(k=>q.includes(norm(k)));
   show('t-out',k?k[0].toUpperCase()+k.slice(1)+': '+GLOS[k]:'Sem tradução cadastrada para esse termo ainda.')}
 // Prazo no navegador (espelha src/openjus/prazos.py; funciona sem API)
