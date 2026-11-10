@@ -1,0 +1,26 @@
+{
+  "repository": "https://github.com/ctresb/leis",
+  "commit": "c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6",
+  "selected_scope": "CDC, Código Civil e CPC; NÃO é acervo completo nem certificação de vigência",
+  "retrieved_at": "2026-11-10",
+  "files": [
+    {
+      "path": "federal/leis-ordinarias/1990/lei-8078-1990-09-11.md",
+      "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/1990/lei-8078-1990-09-11.md",
+      "sha256": "fc47a9f4f9647c0bc86ab9399165653c70c0042d5b749b0558c6691a002b7d69",
+      "bytes": 87892
+    },
+    {
+      "path": "federal/leis-ordinarias/2002/lei-10406-2002-01-10.md",
+      "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/2002/lei-10406-2002-01-10.md",
+      "sha256": "be0cd7d8a1eaacb21cb64f07086929db91f43ad3149b3c721cd33873d328c32c",
+      "bytes": 678720
+    },
+    {
+      "path": "federal/leis-ordinarias/2015/lei-13105-2015-03-16.md",
+      "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/2015/lei-13105-2015-03-16.md",
+      "sha256": "cf2fe53d8451a51461d16d7a0bc2721a16c569d6c1a716d509de9f6227b2ff02",
+      "bytes": 617786
+    }
+  ]
+}
