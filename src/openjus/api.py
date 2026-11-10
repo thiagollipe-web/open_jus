@@ -8,7 +8,7 @@ from pathlib import Path
 
 import structlog
 import uvicorn
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -159,13 +159,32 @@ def status() -> dict:
         "ia_url": s.free_llm_base_url or None,
         "ia_chave_definida": bool(s.free_llm_api_key),
         "datajud_chave_definida": bool(s.datajud_api_key),
-        "indice_de_leis": s.db_path.exists() and _tem_indice(s.db_path),
+        "indice_de_leis": leis.indice_disponivel(s.leis_db_path),
     }
 
 
 @app.get("/api/saude")
 def saude() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/api/leis")
+def buscar_leis(
+    q: str,
+    limite: int = Query(default=5, ge=1, le=20),
+    vigentes: bool = False,
+) -> list[dict]:
+    """Consulta somente leitura ao índice local de legislação."""
+    db = get_settings().leis_db_path
+    if not leis.indice_disponivel(db):
+        raise HTTPException(503, "Índice de leis ausente ou vazio. Execute o build local antes de consultar.")
+    try:
+        return [t.__dict__ for t in leis.buscar(db, q, limite, vigentes)]
+    except leis.IndiceLeisErro as exc:
+        log.warning("consulta_leis_falhou", erro=str(exc))
+        raise HTTPException(503, "Índice de leis temporariamente indisponível.") from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @app.get("/api/processo/{numero}")
@@ -190,14 +209,6 @@ def cnj(numero: str) -> dict:
 @app.post("/api/prazo")
 def prazo(p: PrazoIn) -> dict:
     return servico.prazo(p.inicio, p.dias, p.feriados_extras, p.dias_uteis)
-
-
-@app.get("/api/leis")
-def buscar_leis(q: str, limite: int = 5, vigentes: bool = False) -> list[dict]:
-    s = get_settings()
-    if not s.db_path.exists():
-        raise HTTPException(503, "Índice de leis ausente. Rode `openjus-ingest`.")
-    return [t.__dict__ for t in leis.buscar(s.db_path, q, min(limite, 20), vigentes)]
 
 
 @app.get("/api/traduzir")
