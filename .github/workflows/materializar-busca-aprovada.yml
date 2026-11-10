@@ -1,0 +1,40 @@
+name: Materializa corpus aprovado da busca
+on:
+  push:
+    branches: [ccr-4f2b2356-ssam6e]
+    paths: [.github/workflows/materializar-busca-aprovada.yml]
+permissions:
+  contents: write
+jobs:
+  materializar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ccr-4f2b2356-ssam6e
+      - name: Versionar os tres textos exatos e remover rotina temporaria
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, urllib.request
+          from pathlib import Path
+          for item in json.loads(Path('data/FONTE_LEIS.json').read_text())['files']:
+              assert item['url'].startswith('https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/')
+              data = urllib.request.urlopen(item['url'], timeout=60).read()
+              assert len(data) == item['bytes']
+              assert hashlib.sha256(data).hexdigest() == item['sha256']
+              p = Path('data/leis_iniciais') / item['path']
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_bytes(data)
+          p = Path('site/index.html')
+          text = p.read_text()
+          text = text.replace('&vigentes=true', '')
+          p.write_text(text)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f data/leis_iniciais
+          git add site/index.html
+          git rm .github/workflows/materializar-busca-aprovada.yml
+          git commit -m 'feat(leis): versiona CDC CC CPC verificados; busca sem promessa de vigencia'
+          git push origin HEAD:ccr-4f2b2356-ssam6e
