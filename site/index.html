@@ -93,7 +93,8 @@ button.go:hover{background:var(--ac);color:#000}.row{display:flex;gap:14px;align
 .pill.ok{border-color:#3d7a4a;color:#7fd093}.need{font-size:.75rem;color:var(--mut)}
 #apoie .pix{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 #apoie code{font-size:.72rem;color:var(--mut);word-break:break-all;max-width:60ch;display:block}
-pre{white-space:pre-wrap;font:.86rem/1.55 ui-monospace,Menlo,monospace;color:#cfcbc2;margin-top:18px;max-height:300px;overflow:auto}
+.resultado{font-family:inherit;font-size:1rem;line-height:1.65;color:#cfcbc2;margin-top:18px;max-height:420px;overflow:auto;overflow-wrap:anywhere}
+.resultado p{margin:4px 0 12px;white-space:pre-wrap}.resultado ul{padding-left:22px;margin:6px 0 16px}.resultado li{margin:8px 0}.resultado-campo{margin:12px 0}.resultado-campo>strong{display:block;color:#e8e3d8;font-weight:600}.resultado-destaque{padding:16px;border:1px solid #51462e;border-radius:10px;background:#17140e;margin-bottom:18px}.resultado-destaque strong{display:block;font-size:.85rem;font-weight:400}.resultado-destaque span{display:block;font-size:1.65rem;line-height:1.4;color:#d7b668;font-weight:600}
 .wide{grid-column:1/-1}
 /* footer */
 footer{padding:14vh 4vw 6vh;border-top:1px solid var(--bd)}
@@ -174,13 +175,13 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
       <div class="slm"><button class="link" id="slm-btn" onclick="ativarSLM()">⚡ Ativar IA local</button><small id="slm-st">opcional · ≈400 MB · roda no seu aparelho · grátis</small></div></div>
     <div class="card rv"><h3>Prazos do CPC</h3><p>Arts. 219, 220 e 224. Roda no seu navegador.</p>
       <label>Intimação/publicação<input id="p-ini" type="date"></label><label>Dias<input id="p-dias" type="number" value="15" min="1"></label>
-      <label><input id="p-uteis" type="checkbox" checked>Dias úteis</label><br><button class="go" onclick="prazo()">Calcular</button><pre id="p-out"></pre></div>
+      <label><input id="p-uteis" type="checkbox" checked>Dias úteis</label><br><button class="go" onclick="prazo()">Calcular</button><div class="resultado" id="p-out" role="status" aria-live="polite"></div></div>
     <div class="card rv"><h3>Processo</h3><p>Número CNJ → DataJud (API pública). <span class="need">precisa da API</span></p>
-      <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ"><button class="go" onclick="processo()">Consultar</button><pre id="c-out"></pre></div>
+      <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ"><button class="go" onclick="processo()">Consultar</button><div class="resultado" id="c-out" role="status" aria-live="polite"></div></div>
     <div class="card rv"><h3>Legislação</h3><p>Busca no acervo indexado. <span class="need">precisa da API</span></p>
-      <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><pre id="l-out"></pre></div>
+      <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><div class="resultado" id="l-out" role="status" aria-live="polite"></div></div>
     <div class="card rv"><h3>Juridiquês → português</h3><p>Entenda a movimentação. Funciona offline.</p>
-      <input id="t-q" placeholder="ex.: conclusos para despacho" aria-label="Movimento"><button class="go" onclick="traduzir()">Traduzir</button><pre id="t-out"></pre></div>
+      <input id="t-q" placeholder="ex.: conclusos para despacho" aria-label="Movimento"><button class="go" onclick="traduzir()">Traduzir</button><div class="resultado" id="t-out" role="status" aria-live="polite"></div></div>
   </div>
 </section>
 
@@ -207,7 +208,32 @@ const _f=window.fetch.bind(window);window.fetch=(u,o)=>_f(typeof u==='string'&&u
   for(let i=0;i<8&&!API_OK;i++){try{const r=await fetch('/api/saude');API_OK=r.ok}catch(_){ }if(!API_OK)await new Promise(ok=>setTimeout(ok,9000))}
   e.textContent=API_OK?'API conectada':'modo navegador (processos e leis precisam da API)';if(API_OK)e.classList.add('ok')})();
 function copiarPix(){navigator.clipboard.writeText($('pix').textContent.trim()).then(()=>{$('pix-btn').textContent='Copiado ✓';setTimeout(()=>$('pix-btn').textContent='Copiar Pix',2000)})}
-const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
+const labelsResultado={inicio_contagem:'Início da contagem',vencimento:'Vencimento',fundamentos:'Base legal',aviso:'Atenção',detail:'Não foi possível concluir',encontrado:'Processo encontrado',sigiloso:'Segredo de justiça',classe:'Classe',assuntos:'Assuntos',orgao_julgador:'Órgão julgador',movimentos:'Andamentos',data:'Data',nome:'Descrição',explicacao:'O que significa',novos_desde_ultima_consulta:'Novos andamentos desde a última consulta',legislacao_relacionada:'Legislação relacionada',titulo:'Título',texto:'Texto',trecho:'Trecho',fonte:'Fonte',situacao:'Situação informada na fonte',versao_texto:'Versão do texto',baixado_em:'Data de obtenção',urn:'Identificador da norma',path:'Arquivo de referência',arquivo:'Arquivo de referência',score:'Relevância da busca',loc:'Campo',msg:'Orientação',type:'Tipo'};
+const tituloResultado=k=>labelsResultado[k]||k.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
+function valorResultado(v){
+  if(v===null||v===undefined||v==='')return 'Não informado';
+  if(typeof v==='boolean')return v?'Sim':'Não';
+  if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(v)){const d=v.slice(0,10).split('-');return d[2]+'/'+d[1]+'/'+d[0]+(v.includes('T')?' às '+v.slice(11,16):'')}
+  return String(v);
+}
+function renderResultado(parent,d){
+  if(Array.isArray(d)){
+    if(!d.length){const p=document.createElement('p');p.textContent='Nenhum resultado encontrado.';parent.appendChild(p);return}
+    const lista=document.createElement('ul');d.forEach(v=>{const li=document.createElement('li');renderResultado(li,v);lista.appendChild(li)});parent.appendChild(lista);return;
+  }
+  if(d&&typeof d==='object'){
+    Object.entries(d).forEach(([k,v])=>{const bloco=document.createElement('div');bloco.className='resultado-campo';const titulo=document.createElement('strong');titulo.textContent=tituloResultado(k);bloco.appendChild(titulo);renderResultado(bloco,v);parent.appendChild(bloco)});return;
+  }
+  const p=document.createElement('p');p.textContent=valorResultado(d);parent.appendChild(p);
+}
+function show(id,d){
+  const out=$(id);out.replaceChildren();
+  if(id==='p-out'&&d&&typeof d==='object'&&d.vencimento){
+    const resumo=document.createElement('div');resumo.className='resultado-destaque';const label=document.createElement('strong');label.textContent='Vencimento estimado';const data=document.createElement('span');data.textContent=valorResultado(d.vencimento);resumo.append(label,data);out.appendChild(resumo);
+    renderResultado(out,{inicio_contagem:d.inicio_contagem,fundamentos:d.fundamentos,aviso:d.aviso});return;
+  }
+  renderResultado(out,d);
+}
 async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
 const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
 const leis=()=>call('l-out','/api/leis?q='+encodeURIComponent($('l-q').value));
