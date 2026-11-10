@@ -1,0 +1,46 @@
+name: Publica ajuste aprovado da busca no site
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publicar-busca-aprovada.yml]
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Ajustar somente URL da busca e remover rotina temporaria
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for branch in ccr-4f2b2356-ssam6e main; do
+            git fetch origin "$branch"
+            git checkout -B "$branch" FETCH_HEAD
+            python - <<'PY'
+          from pathlib import Path
+          p = Path('site/index.html')
+          text = p.read_text()
+          old = '/api/leis?vigentes=true&q='
+          new = '/api/leis?q='
+          assert old in text or new in text
+          p.write_text(text.replace(old, new))
+          PY
+            git add site/index.html
+            if [ "$branch" = "main" ]; then git rm .github/workflows/publicar-busca-aprovada.yml; fi
+            if ! git diff --cached --quiet; then
+              git commit -m 'fix(leis): busca inicial sem filtro de vigencia nao certificado'
+              git push origin HEAD:"$branch"
+            fi
+          done
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
