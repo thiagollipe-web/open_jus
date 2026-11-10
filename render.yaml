@@ -1,13 +1,12 @@
-# Deploy grátis da API no Render: New + > Blueprint > selecione este repositório.
+# Template local para revisão; nenhum deploy, alteração de serviço ou configuração remota foi executado.
+# Plano Free, sem disco persistente: o índice é reconstruído no build, a partir do corpus versionado.
 services:
   - type: web
     name: openjus-api
     runtime: python
     plan: free
-    # Build rápido. Para indexar o acervo ctresb/leis (grande), defina INGEST_LEIS=1.
-    buildCommand: >-
-      pip install --upgrade pip && pip install -r requirements.txt && pip install . &&
-      if [ "$INGEST_LEIS" = "1" ]; then (git clone --depth 1 https://github.com/ctresb/leis data/leis && openjus-ingest) || echo "sem índice de leis"; fi
+    # Sem clone ou download: gera data/leis.db em todo build com os 3 textos locais validados.
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt && pip install . && sh scripts/build_leis_iniciais.sh
     startCommand: uvicorn openjus.api:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
     healthCheckPath: /api/saude
     envVars:
@@ -15,6 +14,9 @@ services:
         value: "3.12.7"
       - key: CORS_ORIGINS
         value: https://thiagollipe-web.github.io
+      # Mantém separado do estado mutável; não aponte para DB_PATH.
+      - key: LEIS_DB_PATH
+        value: data/leis.db
       - key: DATAJUD_API_KEY
         sync: false
       - key: FREE_LLM_BASE_URL
