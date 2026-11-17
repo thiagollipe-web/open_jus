@@ -11,7 +11,22 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0a0a0c">
-<meta name="description" content="Bot jurídico open source: legislação, processos do DataJud e prazos do CPC.">
+<meta name="description" content="Bot jurídico open source: legislação, processos do DataJud e prazos do CPC. Grátis, sem cadastro e sem login.">
+<link rel="canonical" href="https://thiagollipe-web.github.io/open_jus/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OpenJus">
+<meta property="og:title" content="OpenJus — O Direito brasileiro, aberto.">
+<meta property="og:description" content="Busque leis, consulte processos pelo número CNJ e calcule prazos do CPC. Grátis, open source e sem cadastro.">
+<meta property="og:url" content="https://thiagollipe-web.github.io/open_jus/">
+<meta property="og:image" content="https://thiagollipe-web.github.io/open_jus/icon-512.png">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="OpenJus — O Direito brasileiro, aberto.">
+<meta name="twitter:description" content="Busque leis, consulte processos pelo número CNJ e calcule prazos do CPC. Grátis, open source e sem cadastro.">
+<meta name="twitter:image" content="https://thiagollipe-web.github.io/open_jus/icon-512.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"OpenJus","applicationCategory":"LegalApplication","operatingSystem":"Web","inLanguage":"pt-BR","url":"https://thiagollipe-web.github.io/open_jus/","description":"Busca em legislação, consulta de processos do DataJud por número CNJ, cálculo de prazos do CPC e tradução de juridiquês. Grátis, open source e sem cadastro.","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"},"license":"https://opensource.org/licenses/MIT"}</script>
+<!-- Medição sem cookies (Plausible): o script só passa a registrar visitas depois que o site for cadastrado em plausible.io com o domínio thiagollipe-web.github.io — veja "Medição (privacidade)" no README. Sem conta, nada é medido e nada é enviado. -->
+<script defer data-domain="thiagollipe-web.github.io" src="https://plausible.io/js/script.js"></script>
 <style>
 :root{--ink:#0a0a0c;--ink2:#121216;--fg:#f2efe8;--mut:#8d8a84;--ac:#d9b25f;--bd:#26262c;--ease:cubic-bezier(.77,0,.18,1);
 --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -26,7 +41,7 @@ nav b{font:700 1.1rem var(--serif);letter-spacing:.04em}nav div{display:flex;gap
 nav a{text-decoration:none}nav a:hover{opacity:.6}
 @media(max-width:640px){nav div a:not(:last-child){display:none}}
 /* hero slider */
-.hero{position:relative;height:100svh;min-height:560px;overflow:hidden}
+.hero{position:relative;height:62svh;min-height:460px;overflow:hidden}
 .slide{position:absolute;inset:0;clip-path:inset(0 0 100% 0);will-change:clip-path}
 .slide.on{clip-path:inset(0);z-index:2}.slide.in{z-index:3;animation:wipe 1.15s var(--ease) forwards}
 .slide.out{z-index:2;animation:push 1.15s var(--ease) forwards}
@@ -95,6 +110,34 @@ button.go:hover{background:var(--ac);color:#000}.row{display:flex;gap:14px;align
 #apoie code{font-size:.72rem;color:var(--mut);word-break:break-all;max-width:60ch;display:block}
 pre{white-space:pre-wrap;font:.86rem/1.55 ui-monospace,Menlo,monospace;color:#cfcbc2;margin-top:18px;max-height:300px;overflow:auto}
 .wide{grid-column:1/-1}
+/* busca rápida acima da dobra */
+.quick{padding:8vh 4vw 6vh;border-bottom:1px solid var(--bd)}
+.quick h2{max-width:22ch}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:20px;margin-top:6vh}
+.quick-box{border:1px solid var(--bd);border-radius:18px;padding:26px;background:var(--ink2)}
+.quick-box h3{font:400 1.4rem var(--serif);margin-bottom:4px}.quick-box>p{color:var(--mut);font-size:.92rem;margin-bottom:14px}
+.quick-box pre{max-height:220px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* para quem é */
+.quem{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:16px;margin-top:8vh}
+.quem div{border:1px solid var(--bd);border-radius:16px;padding:22px}
+.quem h3{font:400 1.3rem var(--serif);margin-bottom:6px}.quem p{color:var(--mut);font-size:.92rem}
+/* acervo de leis */
+.acervo{list-style:none;margin-top:6vh;border-top:1px solid var(--bd)}
+.acervo li{display:grid;grid-template-columns:1fr auto;gap:6px 20px;padding:18px 0;border-bottom:1px solid var(--bd);align-items:baseline}
+.acervo b{font:400 1.15rem var(--serif)}.acervo span{color:var(--mut);font-size:.9rem}
+.acervo .ano{color:var(--ac);font-size:.85rem;letter-spacing:.1em;white-space:nowrap}
+/* glossário */
+.gloss-list{font-size:.9rem;color:var(--mut);margin-top:10px;max-height:180px;overflow:auto}
+.gloss-list b{color:var(--fg);font-weight:600}
+details summary{cursor:pointer;color:var(--ac);font-size:.9rem;margin-top:12px}
+/* pix */
+#apoie .pix img{background:#fff;padding:10px;border-radius:14px;width:180px;height:180px}
+#apoie .pix div{max-width:52ch}
+.foot-links{margin-top:3vh}
+.foot-links a{color:var(--ac);text-decoration:none;margin-right:22px;font-size:.9rem}
+.foot-links a:hover{text-decoration:underline}
 /* footer */
 footer{padding:14vh 4vw 6vh;border-top:1px solid var(--bd)}
 footer h2{max-width:none;font-size:clamp(3rem,13vw,13rem);line-height:.9}footer h2 a{text-decoration:none;transition:.4s}footer h2 a:hover{color:var(--ac);font-style:italic}
@@ -108,7 +151,7 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
 <body>
 <div id="cur"></div>
 <div id="ios-tip" role="dialog" aria-label="Instalar no iPhone"><button onclick="this.parentNode.style.display='none'">fechar</button>Para instalar: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</div>
-<nav><b>OpenJus</b><div><a href="#camadas">Camadas</a><a href="#ferramentas">Ferramentas</a><a href="#apoie">Apoie</a><a href="#" id="inst-nav" class="inst" hidden>Instalar</a><a href="#bot">Bot</a></div></nav>
+<nav><b>OpenJus</b><div><a href="#camadas">Camadas</a><a href="#ferramentas">Ferramentas</a><a href="#acervo">Acervo</a><a href="#apoie">Apoie</a><a href="#" id="inst-nav" class="inst" hidden>Instalar</a><a href="#bot">Bot</a></div></nav>
 
 <header class="hero" id="hero" aria-label="Apresentação">
   <!-- Slide 1: balança -->
@@ -146,8 +189,35 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
     <p class="sub">Prazos do CPC, termos jurídicos, processos e leis. Grátis, open source e sem IA paga.</p>
     <div class="ctas"><a class="btn solid" href="#bot">Perguntar ao bot</a><a class="btn" href="https://github.com/thiagollipe-web/open_jus">Ver no GitHub</a><button class="btn inst" id="inst-hero" hidden>📲 Instalar app</button></div>
   </div>
-  <div class="hud"><span id="cap">01 — Legislação</span><div class="bar"><i id="prog"></i></div><button id="prev" aria-label="Anterior">←</button><button id="next" aria-label="Próximo">→</button></div>
+  <div class="hud"><span id="cap">01 — Legislação</span><div class="bar"><i id="prog"></i></div><button id="prev" aria-label="Anterior">←</button><button id="next" aria-label="Próximo">→</button><button id="pause" aria-label="Pausar apresentação">⏸</button></div>
 </header>
+
+<section class="quick" id="rapido" aria-label="Busca rápida">
+  <span class="tag rv">Comece aqui — sem cadastro, sem login</span>
+  <h2 class="rv">Busque uma lei ou consulte um processo.</h2>
+  <div class="quick-grid">
+    <div class="quick-box rv"><h3>Buscar uma lei</h3><p>Ex.: prazo de contestação, defesa do consumidor, LGPD.</p>
+      <div class="row"><input id="q-lei" placeholder="O que você procura na lei?" aria-label="Buscar na legislação" onkeydown="if(event.key==='Enter')leisRapido()"><button class="go" onclick="leisRapido()">Buscar</button></div>
+      <pre id="q-lei-out" aria-live="polite">O resultado aparece aqui, com o trecho e a fonte.</pre></div>
+    <div class="quick-box rv"><h3>Consultar um processo</h3><p>Digite o número CNJ completo. O CPF, se houver, fica mascarado.</p>
+      <div class="row"><input id="q-cnj" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ" onkeydown="if(event.key==='Enter')processoRapido()"><button class="go" onclick="processoRapido()">Consultar</button></div>
+      <pre id="q-cnj-out" aria-live="polite">O andamento aparece aqui, explicado em linguagem simples.</pre></div>
+  </div>
+  <p class="lead rv" style="margin-top:26px">Quer calcular um prazo ou perguntar ao bot? <a href="#ferramentas" style="color:var(--ac)">Ver todas as ferramentas ↓</a></p>
+</section>
+
+<section id="para-quem" aria-label="Para quem é o OpenJus">
+  <span class="tag rv">Para quem é</span>
+  <h2 class="rv">Feito para quem usa o Direito todo dia — e para quem nunca usou.</h2>
+  <div class="quem">
+    <div class="rv"><h3>Juízes</h3><p>Confira um prazo ou um termo em segundos, com a fonte da lei ao lado.</p></div>
+    <div class="rv"><h3>Advogados</h3><p>Consulte processos pelo CNJ e calcule prazos do CPC sem sair da página.</p></div>
+    <div class="rv"><h3>Estudantes</h3><p>Leia a lei com o texto original e entenda o juridiquês em português simples.</p></div>
+    <div class="rv"><h3>Servidores e funcionários</h3><p>Explique andamentos e prazos com linguagem clara, sem depender de outro sistema.</p></div>
+    <div class="rv"><h3>Leigos</h3><p>Descubra o que está acontecendo no seu processo, passo a passo, sem cadastro.</p></div>
+  </div>
+  <p class="lead rv">Tudo grátis e aberto: o código é público, não pedimos seus dados e não vendemos nada.</p>
+</section>
 
 <div class="mq" aria-hidden="true"><div>Legislação <b>✦</b> DataJud <b>✦</b> CPC 219 · 220 · 224 <b>✦</b> MCP <b>✦</b> LGPD <b>✦</b> Open source <b>✦</b> Legislação <b>✦</b> DataJud <b>✦</b> CPC 219 · 220 · 224 <b>✦</b> MCP <b>✦</b> LGPD <b>✦</b> Open source <b>✦</b></div></div>
 
@@ -156,7 +226,7 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
   <h2 class="rv">Quatro camadas. Zero caixa-preta.</h2>
   <p class="lead rv">Regras determinísticas fazem a conta; o texto vem sempre da fonte. Sem IA paga, sem chave obrigatória.</p>
   <div class="layers">
-    <div class="layer rv"><small>I</small><h3>Contexto</h3><p>Acervo ctresb/leis indexado por artigo e consulta ao DataJud por número CNJ.</p></div>
+    <div class="layer rv"><small>I</small><h3>Contexto</h3><p>6 leis federais indexadas por artigo (<a href="#acervo" style="color:var(--ac)">veja o acervo</a>) e consulta ao DataJud por número CNJ.</p></div>
     <div class="layer rv"><small>II</small><h3>Memória</h3><p>Snapshots de andamentos. Segredo de justiça não é gravado; CPFs mascarados (LGPD).</p></div>
     <div class="layer rv"><small>III</small><h3>Referências</h3><p>Sabe qual conector do ecossistema usar: lote, pandas, MCP, e-SAJ.</p></div>
     <div class="layer rv"><small>IV</small><h3>Linguagem</h3><p>Traduz juridiquês e calcula prazos pelo CPC com calendário forense offline.</p></div>
@@ -176,24 +246,41 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
       <label>Intimação/publicação<input id="p-ini" type="date"></label><label>Dias<input id="p-dias" type="number" value="15" min="1"></label>
       <label><input id="p-uteis" type="checkbox" checked>Dias úteis</label><br><button class="go" onclick="prazo()">Calcular</button><pre id="p-out"></pre></div>
     <div class="card rv"><h3>Processo</h3><p>Número CNJ → DataJud (API pública). <span class="need">precisa da API</span></p>
-      <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ"><button class="go" onclick="processo()">Consultar</button><pre id="c-out"></pre></div>
+      <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ"><button class="go" onclick="processo()">Consultar</button><pre id="c-out" aria-live="polite"></pre></div>
     <div class="card rv"><h3>Legislação</h3><p>Busca no acervo indexado. <span class="need">precisa da API</span></p>
-      <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><pre id="l-out"></pre></div>
-    <div class="card rv"><h3>Juridiquês → português</h3><p>Entenda a movimentação. Funciona offline.</p>
-      <input id="t-q" placeholder="ex.: conclusos para despacho" aria-label="Movimento"><button class="go" onclick="traduzir()">Traduzir</button><pre id="t-out"></pre></div>
+      <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><pre id="l-out" aria-live="polite"></pre></div>
+    <div class="card rv"><h3>Juridiquês → português</h3><p>Entenda a movimentação. Funciona offline. <span id="gloss-count" class="need"></span></p>
+      <input id="t-q" placeholder="ex.: conclusos para despacho" aria-label="Movimento"><button class="go" onclick="traduzir()">Traduzir</button><pre id="t-out"></pre>
+      <details><summary>Ver todos os termos traduzidos</summary><p class="gloss-list" id="gloss-list">Carregando termos…</p></details></div>
   </div>
+</section>
+
+<section id="acervo" aria-label="Leis indexadas">
+  <span class="tag rv">Acervo de leis</span>
+  <h2 class="rv">Estas são as leis que o site busca hoje.</h2>
+  <p class="lead rv">O acervo ainda é pequeno e está crescendo. A busca só encontra trechos destas 6 leis federais — se você buscar outra lei, o site vai dizer que não a encontrou. Os textos vêm do repositório público <a href="https://github.com/ctresb/leis" style="color:var(--ac)">ctresb/leis</a>, conferidos por SHA-256 no build (veja <code>data/FONTE_LEIS.json</code> no repositório). Não certificamos vigência: confira sempre o texto oficial.</p>
+  <ul class="acervo">
+    <li class="rv"><div><b>Lei nº 8.078/1990 — Código de Defesa do Consumidor (CDC)</b><br><span>Direitos do consumidor, práticas abusivas, garantia e responsabilidade do fornecedor.</span></div><span class="ano">1990</span></li>
+    <li class="rv"><div><b>Lei nº 8.906/1994 — Estatuto da Advocacia e da OAB</b><br><span>Atividade privativa do advogado, direitos, deveres e ética profissional.</span></div><span class="ano">1994</span></li>
+    <li class="rv"><div><b>Lei nº 9.099/1995 — Juizados Especiais Cíveis e Criminais</b><br><span>Causas de menor complexidade, conciliação e rito simplificado.</span></div><span class="ano">1995</span></li>
+    <li class="rv"><div><b>Lei nº 10.406/2002 — Código Civil</b><br><span>Contratos, obrigações, responsabilidade civil, família e sucessões.</span></div><span class="ano">2002</span></li>
+    <li class="rv"><div><b>Lei nº 13.105/2015 — Código de Processo Civil (CPC)</b><br><span>Prazos, recursos, procedimento comum e execução — base dos cálculos do site.</span></div><span class="ano">2015</span></li>
+    <li class="rv"><div><b>Lei nº 13.709/2018 — Lei Geral de Proteção de Dados (LGPD)</b><br><span>Tratamento de dados pessoais, direitos do titular e proteção da privacidade.</span></div><span class="ano">2018</span></li>
+  </ul>
+  <p class="lead rv" style="margin-top:26px">Falta uma lei que você usa muito? <a href="https://github.com/thiagollipe-web/open_jus/issues" style="color:var(--ac)">Sugira no GitHub →</a> Para ampliar o acervo, basta baixar o texto da mesma fonte, registrar bytes e SHA-256 em <code>data/FONTE_LEIS.json</code> e rodar o build — o passo a passo está no README.</p>
 </section>
 
 <section id="apoie">
   <span class="tag rv">Apoie</span>
   <h2 class="rv">Gostou? Ajude o projeto a crescer.</h2>
   <p class="lead rv">O OpenJus é gratuito e mantido no tempo livre. Qualquer valor via Pix ajuda.</p>
-  <div class="pix rv"><button class="go" id="pix-btn" onclick="copiarPix()">Copiar Pix</button><code id="pix">00020126360014br.gov.bcb.pix0114+55119864553905204000053039865802BR5921Thiago Fillipe Soares6009Sao Paulo62230519daqr25678757257972763047D53</code></div>
+  <div class="pix rv"><img src="pix-qr.svg" alt="QR Code Pix para apoiar o OpenJus" width="180" height="180"><div><button class="go" id="pix-btn" onclick="copiarPix()">Copiar Pix</button><p class="need" style="margin-top:12px">Escaneie o QR Code no app do seu banco ou copie o código Pix. O código não aparece escrito nesta página.</p></div></div>
 </section>
 
 <footer>
   <h2><a href="https://github.com/thiagollipe-web/open_jus">Open source.<br>Contribua →</a></h2>
-  <p>Informativo; não substitui advogado. Código MIT. Gostou? Há uma chave Pix no README do repositório para apoiar o projeto.</p>
+  <p class="foot-links"><a href="https://www.instagram.com/thiagofillipesoares">Instagram @thiagofillipesoares</a><a href="https://thiagollipe-web.github.io/t.free/">T.Free — ferramentas de IA gratuitas</a><a href="https://github.com/thiagollipe-web/open_jus">GitHub</a></p>
+  <p>Informativo; não substitui advogado. Código MIT. O OpenJus é feito por Thiago Fillipe Soares e mantido em código aberto.</p>
 </footer>
 
 <script>
@@ -206,11 +293,21 @@ const _f=window.fetch.bind(window);window.fetch=(u,o)=>_f(typeof u==='string'&&u
 (async()=>{const e=$('api-st');if(API)e.textContent='acordando a API (até 1 min)…';
   for(let i=0;i<8&&!API_OK;i++){try{const r=await fetch('/api/saude');API_OK=r.ok}catch(_){ }if(!API_OK)await new Promise(ok=>setTimeout(ok,9000))}
   e.textContent=API_OK?'API conectada':'modo navegador (processos e leis precisam da API)';if(API_OK)e.classList.add('ok')})();
-function copiarPix(){navigator.clipboard.writeText($('pix').textContent.trim()).then(()=>{$('pix-btn').textContent='Copiado ✓';setTimeout(()=>$('pix-btn').textContent='Copiar Pix',2000)})}
+// Código Pix para apoiar o projeto (mesmo valor de antes; não aparece escrito na página).
+const PIX='00020126360014br.gov.bcb.pix0114+55119864553905204000053039865802BR5921Thiago Fillipe Soares6009Sao Paulo62230519daqr25678757257972763047D53';
+function copiarPix(){navigator.clipboard.writeText(PIX).then(()=>{$('pix-btn').textContent='Copiado ✓';setTimeout(()=>$('pix-btn').textContent='Copiar Pix',2000)})}
 const show=(id,d)=>$(id).textContent=typeof d==='string'?d:JSON.stringify(d,null,2);
-async function call(id,url,opt){try{const r=await fetch(url,opt);show(id,await r.json())}catch(e){show(id,'Erro: '+e.message+' (API offline? rode openjus-api)')}}
+// A API gratuita "dorme" sem uso: avisa a espera e desiste com mensagem clara após ~75 s.
+async function call(id,url,opt){const el=$(id);
+  el.innerHTML='<span class="spin" aria-hidden="true"></span>Consultando… A API gratuita pode demorar até 1 minuto na primeira vez, porque ela “dorme” quando ninguém usa.';
+  try{const r=await Promise.race([fetch(url,opt),new Promise((_,rej)=>setTimeout(()=>rej(new Error('tempo esgotado')),75000))]);
+    show(id,await r.json())}
+  catch(e){show(id,'Não consegui consultar agora ('+e.message+'). Espere 1 minuto e tente de novo — a API gratuita demora para “acordar”. Se persistir, prazos e glossário funcionam sem ela.')}}
 const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
 const leis=()=>call('l-out','/api/leis?q='+encodeURIComponent($('l-q').value));
+// Busca rápida acima da dobra: usa os mesmos endpoints das ferramentas abaixo.
+const leisRapido=()=>{const q=$('q-lei').value.trim();if(!q)return show('q-lei-out','Digite o que você procura na lei.');$('l-q').value=q;call('q-lei-out','/api/leis?q='+encodeURIComponent(q))};
+const processoRapido=()=>{const n=$('q-cnj').value.trim();if(!n)return show('q-cnj-out','Digite o número CNJ completo.');$('c-num').value=n;call('q-cnj-out','/api/processo/'+encodeURIComponent(n))};
 function traduzir(){const q=norm($('t-q').value),k=Object.keys(GLOS).sort((a,b)=>b.length-a.length).find(k=>q.includes(norm(k)));
   show('t-out',k?k[0].toUpperCase()+k.slice(1)+': '+GLOS[k]:'Sem tradução cadastrada para esse termo ainda.')}
 // Prazo no navegador (espelha src/openjus/prazos.py; funciona sem API)
@@ -229,7 +326,9 @@ function prazo(){
   show('p-out',{inicio_contagem:iso(c),vencimento:iso(v),fundamentos:['CPC 224: exclui o dia do começo, inclui o do vencimento','CPC 219: dias úteis','CPC 220: recesso 20/12–20/01'],aviso:'Confira feriados locais e a data efetiva da intimação.'});
 }
 // ---- Bot no navegador (sem servidor, sem IA paga) + aprendizado recorrente ----
-let GLOS={};fetch('glossario.json').then(r=>r.json()).then(g=>GLOS=g).catch(()=>{});
+let GLOS={};fetch('glossario.json').then(r=>r.json()).then(g=>{GLOS=g;
+  const n=Object.keys(g).length,c=$('gloss-count');if(c)c.textContent=n+' termos traduzidos';
+  const l=$('gloss-list');if(l)l.innerHTML=Object.keys(g).sort().map(k=>'<b>'+k+'</b>: '+g[k]).join('<br>')}).catch(()=>{});
 const norm=t=>t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 const toks=t=>new Set(norm(t).match(/[a-z0-9]+/g)?.filter(w=>w.length>2)||[]);
 const sim=(a,b)=>{const A=toks(a),B=toks(b);if(!A.size||!B.size)return 0;let i=0;A.forEach(x=>B.has(x)&&i++);return i/(A.size+B.size-i)};
@@ -302,13 +401,15 @@ async function bot(){
 $('p-ini').valueAsDate=new Date();
 // Slider com wipe (clip-path) + push parallax
 (()=>{
-  const S=[...document.querySelectorAll('.slide')],cap=$('cap'),prog=$('prog');let i=0,t,busy=false;
+  const S=[...document.querySelectorAll('.slide')],cap=$('cap'),prog=$('prog'),pb=$('pause');let i=0,t,busy=false,paused=false;
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  function run(){prog.classList.remove('run');void prog.offsetWidth;prog.classList.add('run');clearTimeout(t);if(!reduce)t=setTimeout(()=>go(i+1),5500)}
+  function run(){prog.classList.remove('run');void prog.offsetWidth;prog.classList.add('run');clearTimeout(t);if(!reduce&&!paused)t=setTimeout(()=>go(i+1),5500)}
   function go(n){if(busy)return;n=(n+S.length)%S.length;if(n===i)return;busy=true;
     const a=S[i],b=S[n];b.classList.add('in');a.classList.add('out');cap.textContent=b.dataset.cap;
     setTimeout(()=>{a.classList.remove('on','out');b.classList.remove('in');b.classList.add('on');i=n;busy=false;run()},1150)}
-  $('next').onclick=()=>go(i+1);$('prev').onclick=()=>go(i-1);run();
+  $('next').onclick=()=>go(i+1);$('prev').onclick=()=>go(i-1);
+  pb.onclick=()=>{paused=!paused;pb.textContent=paused?'▶':'⏸';pb.setAttribute('aria-label',paused?'Retomar apresentação':'Pausar apresentação');if(!paused)run();else clearTimeout(t)};
+  run();
 })();
 // Reveal on scroll
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');io.unobserve(e.target)}}),{threshold:.15});
