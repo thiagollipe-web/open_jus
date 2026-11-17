@@ -1,5 +1,7 @@
 # OpenJus — revisão “só a busca”
 
+> **Atualização 2026-11-17:** o corpus foi ampliado de 3 para 6 leis (entraram Estatuto da Advocacia 8.906/1994, Juizados Especiais 9.099/1995 e LGPD 13.709/2018, mesma fonte e mesmo commit, com SHA-256 conferido). O script `scripts/build_leis_iniciais.sh` passou a validar a quantidade de documentos do manifesto, em vez de fixar 3. O resto desta revisão continua valendo.
+
 Base: fonte original implantada no commit `690f788`.
 
 ## Escopo entregue

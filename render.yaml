@@ -5,7 +5,7 @@ services:
     name: openjus-api
     runtime: python
     plan: free
-    # Sem clone ou download: gera data/leis.db em todo build com os 3 textos locais validados.
+    # Sem clone ou download: gera data/leis.db em todo build com os textos locais validados (6 leis).
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt && pip install . && sh scripts/build_leis_iniciais.sh
     startCommand: uvicorn openjus.api:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
     healthCheckPath: /api/saude

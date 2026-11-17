@@ -1,8 +1,9 @@
 // Service worker do OpenJus: guarda o site para funcionar offline (prazos, termos, aprendizado).
 // Chamadas à API e a outros domínios (IA local, DataJud) sempre vão à rede.
-const CACHE = 'openjus-v1';
+const CACHE = 'openjus-v2';
 const ARQUIVOS = ['./', './index.html', './glossario.json', './manifest.webmanifest',
-  './favicon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+  './favicon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png',
+  './pix-qr.svg', './robots.txt', './sitemap.xml'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)).then(() => self.skipWaiting()));

@@ -1,14 +1,26 @@
 {
   "repository": "https://github.com/ctresb/leis",
   "commit": "c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6",
-  "selected_scope": "CDC, Código Civil e CPC; NÃO é acervo completo nem certificação de vigência",
-  "retrieved_at": "2026-11-10",
+  "selected_scope": "CDC, Código Civil, CPC, Estatuto da Advocacia, Juizados Especiais e LGPD; NÃO é acervo completo nem certificação de vigência",
+  "retrieved_at": "2026-11-17",
   "files": [
     {
       "path": "federal/leis-ordinarias/1990/lei-8078-1990-09-11.md",
       "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/1990/lei-8078-1990-09-11.md",
       "sha256": "fc47a9f4f9647c0bc86ab9399165653c70c0042d5b749b0558c6691a002b7d69",
       "bytes": 87892
+    },
+    {
+      "path": "federal/leis-ordinarias/1994/lei-8906-1994-07-04.md",
+      "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/1994/lei-8906-1994-07-04.md",
+      "sha256": "35fce99805d7f78b9d31e60a40cf1383fa59575d9e2a4d9764e2dcdcd4731260",
+      "bytes": 95894
+    },
+    {
+      "path": "federal/leis-ordinarias/1995/lei-9099-1995-09-26.md",
+      "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/1995/lei-9099-1995-09-26.md",
+      "sha256": "4c894f67b0ef7b65048daa3d20602d92b3bece24c9f1f84ae65cb835e0b91b2c",
+      "bytes": 43434
     },
     {
       "path": "federal/leis-ordinarias/2002/lei-10406-2002-01-10.md",
@@ -21,6 +33,12 @@
       "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/2015/lei-13105-2015-03-16.md",
       "sha256": "cf2fe53d8451a51461d16d7a0bc2721a16c569d6c1a716d509de9f6227b2ff02",
       "bytes": 617786
+    },
+    {
+      "path": "federal/leis-ordinarias/2018/lei-13709-2018-08-14.md",
+      "url": "https://raw.githubusercontent.com/ctresb/leis/c9f21b4ab11aa0d7ca6fe861d75028e94219c2d6/federal/leis-ordinarias/2018/lei-13709-2018-08-14.md",
+      "sha256": "72d32431037ce85955c6f959f50f11d10971a8ec36f93cdae5ee3459ec66a4dd",
+      "bytes": 84925
     }
   ]
 }
