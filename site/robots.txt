@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://thiagollipe-web.github.io/open_jus/sitemap.xml
