@@ -1,17 +1,16 @@
 # Template local para revisão; nenhum deploy, alteração de serviço ou configuração remota foi executado.
 # Plano Free, sem disco persistente: o índice é reconstruído no build, a partir do corpus versionado.
+# O deploy troca para Go só no merge — até lá, o serviço em produção continua rodando o Python.
 services:
   - type: web
     name: openjus-api
-    runtime: python
+    runtime: go
     plan: free
     # Sem clone ou download: gera data/leis.db em todo build com os textos locais validados (6 leis).
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt && pip install . && sh scripts/build_leis_iniciais.sh
-    startCommand: uvicorn openjus.api:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    buildCommand: sh scripts/build_leis_iniciais.sh && go build -C api-go -o ../openjus-api ./cmd/api
+    startCommand: ./openjus-api
     healthCheckPath: /api/saude
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.12.7"
       - key: CORS_ORIGINS
         value: https://thiagollipe-web.github.io
       # Mantém separado do estado mutável; não aponte para DB_PATH.
