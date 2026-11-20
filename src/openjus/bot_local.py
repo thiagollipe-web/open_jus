@@ -82,13 +82,19 @@ async def _processo(numero: str) -> dict:
 
 
 def _termo(texto: str) -> dict | None:
+    """Só responde quando o termo está no glossário.
+
+    Termo desconhecido não cai no "sem tradução cadastrada": retorna None para a
+    pergunta seguir para a busca de leis e, se houver, para a IA — que é quem
+    pode responder perguntas livres.
+    """
     baixo = texto.lower()
     achou = [k for k in GLOSSARIO if k in baixo]
-    if achou or re.search(r"\b(o que (significa|é|quer dizer)|significado)\b", baixo):
-        alvo = max(achou, key=len) if achou else re.sub(r"^.*?(significa|é|quer dizer)\s*", "", baixo)
-        return {"resposta": f"{alvo.capitalize()}: {traduzir_movimento(alvo)}",
-                "ferramentas": ["explicar_movimento"]}
-    return None
+    if not achou:
+        return None
+    alvo = max(achou, key=len)
+    return {"resposta": f"{alvo.capitalize()}: {traduzir_movimento(alvo)}",
+            "ferramentas": ["explicar_movimento"]}
 
 
 def _tem_indice(db) -> bool:

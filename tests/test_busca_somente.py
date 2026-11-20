@@ -23,6 +23,28 @@ def _configurar(monkeypatch, tmp_path, nome="leis.db"):
     get_settings.cache_clear()
 
 
+def test_busca_prioriza_nome_da_lei_e_frase_exata(tmp_path):
+    d = tmp_path / "leis"
+    d.mkdir()
+    (d / "a.md").write_text(
+        "---\ntitulo: Lei de Direitos Sociais\nurn: urn:lex:br:federal:lei:2000-01-01;9999\n"
+        "ementa: \"Garante direitos sociais.\"\nsituacao: vigente\n---\n"
+        "Art. 1º Esta lei trata de orçamento.\n",
+        encoding="utf-8")
+    (d / "b.md").write_text(
+        "---\ntitulo: Código de Processo\nurn: urn:lex:br:federal:lei:2001-01-01;8888\n"
+        "ementa: \"Processo e procedimento.\"\nsituacao: vigente\n---\n"
+        "Art. 1º Os direitos das partes são garantidos.\n\nArt. 2º Os interesses sociais são protegidos.\n",
+        encoding="utf-8")
+    db = tmp_path / "x.db"
+    assert leis.ingerir(d, db) == 3
+    # O nome da lei está no título/ementa, não no texto dos artigos: sem o
+    # re-ranking, só os trechos que citam os termos no corpo apareceriam.
+    res = leis.buscar(db, "direitos sociais", limite=2)
+    assert res[0].titulo == "Lei de Direitos Sociais"
+    assert res[0].urn.endswith(";9999")
+
+
 def test_corpus_real_tem_manifesto_e_consultas_reprodutiveis(tmp_path):
     indice = tmp_path / "leis.db"
     assert leis.ingerir(CORPUS_REAL, indice, tmp_path / "mutavel.db") > 3

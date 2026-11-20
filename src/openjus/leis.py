@@ -273,6 +273,7 @@ class Trecho:
     fonte: str | None = None
     versao_texto: str | None = None
     baixado_em: str | None = None
+    ementa: str = ""
 
 
 def _metadados_de_retorno(meta_json: str | None) -> tuple[str | None, str | None, str | None]:
@@ -295,6 +296,38 @@ def _fts_query(q: str) -> str:
     return " OR ".join(f'"{t}"' for t in termos if len(t) > 2)
 
 
+def _termos_consulta(consulta: str) -> list[str]:
+    """Termos pesquisáveis da consulta, normalizados (sem acento, minúsculos)."""
+    return [t for t in re.findall(r"\w+", _normalizar(consulta), flags=re.UNICODE) if len(t) > 2]
+
+
+def _casa_nome_da_lei(consulta: str, titulo: str, ementa: str) -> bool:
+    """A consulta menciona o nome da lei (título ou ementa do documento)?"""
+    alvo = _normalizar(f"{titulo} {ementa}")
+    return any(t in alvo for t in _termos_consulta(consulta))
+
+
+def _relevancia(consulta: str, titulo: str, ementa: str, texto: str, bm25_score: float) -> tuple:
+    """Ordena por cobertura da consulta: nome da lei e frase exata pesam mais que o bm25.
+
+    O bm25 puro (OR de termos) devolvia no topo trechos com um único termo da
+    consulta. Aqui um trecho que cobre mais termos — e a frase inteira, quando
+    aparece — passa na frente; o bm25 desempata o resto (menor = mais relevante).
+    """
+    termos = _termos_consulta(consulta)
+    titulo_n = _normalizar(titulo)
+    ementa_n = _normalizar(ementa)
+    texto_n = _normalizar(texto)
+    em_titulo = sum(1 for t in termos if t in titulo_n)
+    em_ementa = sum(1 for t in termos if t in ementa_n)
+    em_texto = sum(1 for t in termos if t in texto_n)
+    frase = _normalizar(consulta) if len(termos) > 1 else ""
+    frase_titulo = 1 if frase and frase in titulo_n else 0
+    frase_ementa = 1 if frase and frase in ementa_n else 0
+    frase_texto = 1 if frase and frase in texto_n else 0
+    return (-em_titulo, -em_ementa, -frase_titulo, -frase_ementa, -frase_texto, -em_texto, bm25_score)
+
+
 def buscar(db_path: Path, consulta: str, limite: int = 5, apenas_vigentes: bool = False) -> list[Trecho]:
     if not 1 <= limite <= 20:
         raise ValueError("limite deve estar entre 1 e 20")
@@ -302,33 +335,62 @@ def buscar(db_path: Path, consulta: str, limite: int = 5, apenas_vigentes: bool 
     if not fq:
         return []
     con = _conectar_leitura(db_path)
-    # A proveniência vem do documento associado pelo path; a FTS continua contendo só o texto.
-    sql = """
-        SELECT f.texto, f.path, f.titulo, f.urn, f.situacao, bm25(leis_fts) AS s, d.meta
-        FROM leis_fts AS f
-        LEFT JOIN leis_docs AS d ON d.path = f.path
-        WHERE leis_fts MATCH ?
-    """
-    params: list[object] = [fq]
-    if apenas_vigentes:
-        marcadores = sorted(SITUACOES_VIGENTES)
-        sql += f" AND trim(lower(f.situacao)) IN ({','.join('?' for _ in marcadores)})"
-        params.extend(marcadores)
-    sql += " ORDER BY s LIMIT ?"
-    params.append(limite)
     try:
-        rows = con.execute(sql, params).fetchall()
-    except sqlite3.Error as exc:
-        raise IndiceLeisErro("Falha ao consultar o índice de leis.") from exc
+        # A proveniência vem do documento associado pelo path; a FTS continua contendo só o texto.
+        sql = """
+            SELECT f.texto, f.path, f.titulo, f.urn, f.situacao, bm25(leis_fts) AS s, d.meta, d.ementa
+            FROM leis_fts AS f
+            LEFT JOIN leis_docs AS d ON d.path = f.path
+            WHERE leis_fts MATCH ?
+        """
+        params: list[object] = [fq]
+        if apenas_vigentes:
+            marcadores = sorted(SITUACOES_VIGENTES)
+            sql += f" AND trim(lower(f.situacao)) IN ({','.join('?' for _ in marcadores)})"
+            params.extend(marcadores)
+        # Busca mais do que o limite: o re-ranking por cobertura da consulta decide o topo.
+        sql += " ORDER BY s LIMIT ?"
+        params.append(min(limite * 5, 100))
+        try:
+            rows = con.execute(sql, params).fetchall()
+        except sqlite3.Error as exc:
+            raise IndiceLeisErro("Falha ao consultar o índice de leis.") from exc
+        trechos = [
+            Trecho(
+                r["texto"], r["path"], r["titulo"], r["urn"], r["situacao"], r["s"],
+                *_metadados_de_retorno(r["meta"]), ementa=r["ementa"] or "",
+            )
+            for r in rows
+        ]
+        # Busca por nome da lei: um documento cujo título/ementa casa com a consulta
+        # entra no resultado mesmo que nenhum trecho dele tenha vindo no FTS (o nome
+        # da lei nem sempre aparece no texto dos artigos). Sem isso, "LGPD" ou
+        # "Código Civil" só retornariam trechos que citam o nome no corpo.
+        try:
+            vistos = {t.path for t in trechos}
+            docs = con.execute("SELECT path, titulo, urn, situacao, ementa, meta FROM leis_docs").fetchall()
+            for d in docs:
+                if d["path"] in vistos:
+                    continue
+                if apenas_vigentes and not situacao_eh_vigente(d["situacao"] or ""):
+                    continue
+                if not _casa_nome_da_lei(consulta, d["titulo"], d["ementa"] or ""):
+                    continue
+                primeiro = con.execute(
+                    "SELECT texto FROM leis_fts WHERE path = ? ORDER BY rowid LIMIT 1", (d["path"],)
+                ).fetchone()
+                if primeiro is None:
+                    continue
+                trechos.append(Trecho(
+                    primeiro["texto"], d["path"], d["titulo"], d["urn"], d["situacao"], 0.0,
+                    *_metadados_de_retorno(d["meta"]), ementa=d["ementa"] or "",
+                ))
+        except sqlite3.Error:
+            pass
     finally:
         con.close()
-    return [
-        Trecho(
-            r["texto"], r["path"], r["titulo"], r["urn"], r["situacao"], r["s"],
-            *_metadados_de_retorno(r["meta"]),
-        )
-        for r in rows
-    ]
+    trechos.sort(key=lambda t: _relevancia(consulta, t.titulo, t.ementa, t.texto, t.score))
+    return trechos[:limite]
 
 
 def cruzar_processo(db_path: Path, classe: str, assuntos: list[str], limite: int = 3) -> list[Trecho]:
