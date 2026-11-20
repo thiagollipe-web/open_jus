@@ -51,9 +51,11 @@ Legislação, processos do DataJud/CNJ e prazos do CPC — numa API e num site.
 | 3. Referências | `internal/referencias` | Aponta o repositório certo: DataJUD_API_CALLER (lote), api_cnj (pandas), mcp-juridico-brasil (agente), jjesusfilho/tjsp e crawler-jus (e-SAJ/scraping) |
 | 4. Linguagem | `internal/lingua`, `internal/prazos` | Tradução de juridiquês e cálculo de prazos |
 
-**Como cruza leis × processo:** o DataJud devolve classe e assuntos; o OpenJus monta uma busca na legislação *vigente* (campo `situacao` do YAML) e devolve os trechos com URN para citação.
+**Como cruza leis × processo:** o DataJud devolve classe e assuntos; o OpenJus monta uma busca na legislação *vigente* (campo `situacao` do YAML) e devolve os trechos com URN para citação. ⚠️ Hoje esse cruzamento ainda não devolve trechos: o `situacao` vem vazio do acervo (o frontmatter traz só `revogada: false`) — ver Limitações.
 
 ## 🚀 Início rápido
+
+**Pré-requisitos:** Go 1.26 ou superior ([go.dev/dl](https://go.dev/dl)). Não precisa de Python nem de Node — o backend é só Go.
 
 ```bash
 git clone https://github.com/thiagollipe-web/open_jus && cd open_jus
@@ -76,7 +78,7 @@ O binário é Go puro (SQLite via `modernc.org/sqlite`, sem cgo): um único arqu
 | GET | `/api/processo/{cnj}` | Consulta o processo e cruza com a legislação |
 | GET | `/api/cnj/{cnj}` | Valida o número e mostra o tribunal |
 | POST | `/api/prazo` | Calcula prazo (`inicio`, `dias`, `dias_uteis`, `feriados_extras`) |
-| GET | `/api/leis?q=` | Busca na legislação (`limite` 1–20, `vigentes`) |
+| GET | `/api/leis?q=` | Busca na legislação (`limite` 1–20, `vigentes` — ver Limitações) |
 | GET | `/api/traduzir?movimento=` | Explica uma movimentação |
 | GET | `/api/conectores` | Lista os conectores do ecossistema |
 | GET | `/api/status` | Saúde genérica (não revela provedor, modelo nem chaves) |
@@ -88,6 +90,42 @@ O binário é Go puro (SQLite via `modernc.org/sqlite`, sem cgo): um único arqu
 | POST | `/admin/aprovar` | Aprova um ensinamento |
 | POST | `/admin/chaves` | Emite uma chave de acesso |
 | POST | `/admin/creditos` | Adiciona créditos a uma chave |
+
+### 🤖 Servidor MCP (para agentes de IA)
+
+O OpenJus também expõe as ferramentas a agentes (Claude Desktop, Cursor, Claude Code) via MCP, transporte stdio — sem HTTP. São as 5 tools do antigo servidor Python, reescritas em Go:
+
+| Tool | O que faz |
+|---|---|
+| `consultar_processo` | Consulta o DataJud pelo CNJ (classe, assuntos, movimentos explicados, legislação relacionada) |
+| `calcular_prazo` | Calcula prazo do CPC (arts. 219/220/224) |
+| `buscar_legislacao` | Busca no índice das 6 leis (com `score`) |
+| `explicar_movimento` | Explica uma movimentação em português simples |
+| `qual_conector_usar` | Recomenda o conector certo do ecossistema para um caso |
+
+```bash
+sh scripts/build_leis_iniciais.sh            # o MCP precisa do índice (data/leis.db)
+go build -C api-go -o openjus-mcp ./cmd/mcp  # binário em api-go/openjus-mcp
+```
+
+Configure no cliente (exemplo Claude Desktop — `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "openjus": {
+      "command": "/caminho/para/open_jus/api-go/openjus-mcp",
+      "env": {
+        "LEIS_DB_PATH": "/caminho/para/open_jus/data/leis.db",
+        "GLOSSARIO_PATH": "/caminho/para/open_jus/site/glossario.json",
+        "DATAJUD_API_KEY": "sua_chave"
+      }
+    }
+  }
+}
+```
+
+Os caminhos padrão são relativos à raiz do repo (`./data/leis.db`, `site/glossario.json`) — rode a partir da raiz ou informe os caminhos absolutos como acima. Sem `DATAJUD_API_KEY`, a `consultar_processo` devolve erro claro (o resto funciona). Logs vão para stderr; o stdout é só o protocolo MCP. Para testar: `sh scripts/smoke-mcp.sh` (12 checagens: initialize, tools/list e chamadas reais).
 
 ## 🆓 Bot gratuito (sem LLM, sem API paga)
 
@@ -158,6 +196,7 @@ O site usa **Plausible** (sem cookies, sem dados pessoais, sem rastreamento entr
 
 ## ⚠️ Limitações
 
+- O filtro `vigentes` (e o cruzamento leis × processo) ainda não devolve resultados: o campo `situacao` fica vazio no índice — o frontmatter do acervo traz só `revogada: false`. Para corrigir, derivar `situacao="vigente"` de `revogada: false` na ingestão.
 - Feriados estaduais e municipais entram via `feriados_extras`.
 - Sem prazo em dobro (Fazenda, MP) nem contagem em horas.
 - O DataJud público tem dados parciais e atraso de atualização.
