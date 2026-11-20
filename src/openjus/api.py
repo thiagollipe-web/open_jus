@@ -148,17 +148,11 @@ def creditar(c: Credito, x_admin_token: str = Header(default="")) -> dict:
 
 @app.get("/api/status")
 def status() -> dict:
-    """Diagnóstico sem segredos: o que está configurado neste servidor."""
-    from . import ia_livre
-    from .bot_local import _tem_indice
-
+    """Saúde genérica do servidor: não revela provedor, modelo nem se há chaves."""
     s = get_settings()
     return {
-        "ia_gratuita_configurada": ia_livre.configurada(),
-        "ia_modelo": s.free_llm_model or None,
-        "ia_url": s.free_llm_base_url or None,
-        "ia_chave_definida": bool(s.free_llm_api_key),
-        "datajud_chave_definida": bool(s.datajud_api_key),
+        "status": "ok",
+        "versao": app.version,
         "indice_de_leis": leis.indice_disponivel(s.leis_db_path),
     }
 

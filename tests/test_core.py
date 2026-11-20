@@ -314,6 +314,20 @@ async def test_bot_pede_cnj_e_cumprimenta(tmp_path, monkeypatch):
     get_settings.cache_clear()
 
 
+async def test_bot_termo_desconhecido_nao_cai_no_fallback_de_glossario(tmp_path, monkeypatch):
+    from openjus.bot_local import conversar_local
+    from openjus.config import get_settings
+
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "x.db"))
+    get_settings.cache_clear()
+    # Termo fora do glossário: a pergunta segue para a busca de leis, não para o
+    # "Andamento processual (sem tradução cadastrada)".
+    r = await conversar_local("o que significa usucapião extraordinária?")
+    assert "Andamento processual" not in r["resposta"]
+    assert "Ainda não sei responder" in r["resposta"]
+    get_settings.cache_clear()
+
+
 def test_api_status_sem_segredos(monkeypatch):
     from fastapi.testclient import TestClient
 
@@ -321,7 +335,16 @@ def test_api_status_sem_segredos(monkeypatch):
     from openjus.config import get_settings
 
     monkeypatch.setenv("FREE_LLM_API_KEY", "segredo")
+    monkeypatch.setenv("FREE_LLM_MODEL", "modelo-secreto")
+    monkeypatch.setenv("FREE_LLM_BASE_URL", "https://exemplo.test/v1")
+    monkeypatch.setenv("DATAJUD_API_KEY", "chave-secreta")
     get_settings.cache_clear()
     j = TestClient(api.app).get("/api/status").json()
-    assert j["ia_chave_definida"] is True and "segredo" not in str(j)
+    assert j["status"] == "ok"
+    assert "indice_de_leis" in j
+    # Nada de provedor, modelo ou existência de chaves: só saúde genérica.
+    assert not ({"ia_gratuita_configurada", "ia_modelo", "ia_url", "ia_chave_definida",
+                 "datajud_chave_definida"} & set(j))
+    assert "segredo" not in str(j) and "modelo-secreto" not in str(j)
+    assert "chave-secreta" not in str(j) and "exemplo.test" not in str(j)
     get_settings.cache_clear()

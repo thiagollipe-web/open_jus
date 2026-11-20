@@ -62,12 +62,15 @@ PY
 mkdir -p "$(dirname "$BANCO")"
 python -m openjus.leis --dir "$ACERVO" --leis-db "$BANCO"
 
-# Confere que o artefato contém os três documentos e ao menos um trecho por documento.
-python - "$BANCO" <<'PY'
+# Confere que o artefato contém os documentos do manifesto e ao menos um trecho por documento.
+python - "$BANCO" "$MANIFEST" <<'PY'
+import json
 import sqlite3
 import sys
+from pathlib import Path
 
 con = sqlite3.connect(sys.argv[1])
+esperado = len(json.loads(Path(sys.argv[2]).read_text(encoding="utf-8")).get("files", []))
 docs = con.execute("SELECT count(*) FROM leis_docs").fetchone()[0]
 trechos = con.execute("SELECT count(*) FROM leis_fts").fetchone()[0]
 sem_trecho = con.execute("""
@@ -76,7 +79,7 @@ sem_trecho = con.execute("""
     WHERE coalesce(f.n, 0) = 0
 """).fetchone()[0]
 con.close()
-if docs != 3 or trechos < 3 or sem_trecho:
+if docs != esperado or trechos < esperado or sem_trecho:
     raise SystemExit(f"Validação do índice falhou: docs={docs}, trechos={trechos}, sem_trecho={sem_trecho}")
 print(f"Índice inicial validado: docs={docs}, trechos={trechos}.")
 PY

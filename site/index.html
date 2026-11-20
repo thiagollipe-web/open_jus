@@ -45,7 +45,7 @@ nav div::-webkit-scrollbar{display:none}
 nav a{text-decoration:none;white-space:nowrap;flex:none;padding:10px 2px}
 nav a:hover{color:var(--ac)}
 nav a.inst{color:var(--ac)}
-@media(max-width:640px){nav{padding:14px 4vw;gap:14px}nav div{gap:18px;font-size:.78rem}}
+@media(max-width:640px){nav{padding:14px 4vw;gap:14px}nav div{gap:18px;font-size:.78rem;mask-image:linear-gradient(90deg,#000 88%,transparent);-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent)}}
 /* hero slider */
 .hero{position:relative;height:62svh;min-height:460px;overflow:hidden}
 .slide{position:absolute;inset:0;clip-path:inset(0 0 100% 0);will-change:clip-path}
@@ -57,17 +57,17 @@ nav a.inst{color:var(--ac)}
 .slide .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.05) 40%,rgba(0,0,0,.75))}
 .htxt{position:absolute;z-index:10;left:4vw;right:4vw;bottom:14vh}
 .hero h1{font:400 clamp(2.6rem,9.5vw,9.5rem)/.92 var(--serif);letter-spacing:-.03em}
-.sub{max-width:44ch;color:#d8d3c8;margin-top:22px;font-size:clamp(1rem,1.4vw,1.15rem);opacity:0;animation:fade 1s .9s forwards}
-.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px;opacity:0;animation:fade 1s 1.1s forwards}
+.sub{max-width:44ch;color:#d8d3c8;margin-top:22px;font-size:clamp(1rem,1.4vw,1.15rem);opacity:0;animation:fade 1s .25s forwards}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px;opacity:0;animation:fade 1s .4s forwards}
 @keyframes fade{to{opacity:1}}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:14px 28px;border-radius:99px;border:1px solid rgba(255,255,255,.4);text-decoration:none;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;transition:.35s}
 .btn:hover{border-color:var(--ac);color:var(--ac)}
 button.btn{background:transparent;color:var(--fg);font:inherit;font-size:.78rem;cursor:pointer}
-#ios-tip{position:fixed;left:4vw;right:4vw;bottom:20px;z-index:60;background:#1a1a20;border:1px solid var(--ac);border-radius:14px;padding:14px 16px;font-size:.9rem;display:none}
-#ios-tip button{float:right;background:none;border:0;color:var(--ac);font:inherit;cursor:pointer}.btn.solid{background:var(--ac);border-color:var(--ac);color:#111}.btn.solid:hover{background:transparent;color:var(--ac)}
+#install-tip{position:fixed;left:4vw;right:4vw;bottom:20px;z-index:60;background:#1a1a20;border:1px solid var(--ac);border-radius:14px;padding:14px 16px;font-size:.9rem;display:none}
+#install-tip button{float:right;background:none;border:0;color:var(--ac);font:inherit;cursor:pointer}.btn.solid{background:var(--ac);border-color:var(--ac);color:#111}.btn.solid:hover{background:transparent;color:var(--ac)}
 .hero h1 em{color:var(--ac);font-style:italic}
-.hero h1 span{display:block;overflow:hidden}.hero h1 span i{display:block;font-style:inherit;transform:translateY(105%);animation:up 1.2s var(--ease) .3s forwards}
-.hero h1 span:nth-child(2) i{animation-delay:.45s}
+.hero h1 span{display:block;overflow:hidden}.hero h1 span i{display:block;font-style:inherit;transform:translateY(105%);animation:up 1.2s var(--ease) .05s forwards}
+.hero h1 span:nth-child(2) i{animation-delay:.15s}
 @keyframes up{to{transform:none}}
 .hud{position:absolute;z-index:10;left:4vw;right:4vw;bottom:4vh;display:flex;align-items:center;gap:20px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
 .bar{flex:1;height:1px;background:rgba(255,255,255,.25);position:relative;overflow:hidden}
@@ -119,10 +119,22 @@ button.go:hover{background:transparent;color:var(--ac)}
 .slm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.slm small{color:var(--mut)}
 .link{background:none;border:0;color:var(--ac);font:inherit;font-size:.85rem;cursor:pointer;padding:6px 0;text-decoration:underline}
 .pill{display:inline-block;font-size:.72rem;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);color:var(--mut);margin-left:4px}
-.pill.ok{border-color:#3d7a4a;color:#7fd093}.need{font-size:.75rem;color:var(--mut)}
+.pill.ok{border-color:#3d7a4a;color:#7fd093}.pill.off{border-color:#8a4a3d;color:#e08a7a}.need{font-size:.75rem;color:var(--mut)}
 #apoie .pix{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 #apoie code{font-size:.72rem;color:var(--mut);word-break:break-all;max-width:60ch;display:block}
 pre{white-space:pre-wrap;font:.86rem/1.55 ui-monospace,Menlo,monospace;color:#cfcbc2;margin-top:18px;max-height:300px;overflow:auto}
+/* prazos e processo mostram o resultado inteiro, sem rolagem interna nem linha cortada */
+#p-out,#c-out{max-height:none;overflow:visible}
+/* resultados de legislação: cartões legíveis, sem rolagem interna */
+.lei-out{margin-top:18px}
+.lei-res{border-top:1px solid var(--bd);padding:16px 0}
+.lei-res:first-child{border-top:0;padding-top:4px}
+.lei-res h4{font:400 1.05rem var(--serif);margin-bottom:2px}
+.lei-res h4 span{color:var(--mut);font:.8rem var(--sans)}
+.lei-res .lei-ementa{color:var(--mut);font-size:.88rem;margin-bottom:8px}
+.lei-res p{font-size:.92rem;color:#d8d3c8;white-space:pre-wrap}
+.lei-res .lei-meta{color:var(--mut);font-size:.78rem;margin-top:10px}
+.lei-res .lei-meta a{color:var(--ac)}
 .wide{grid-column:1/-1}
 /* busca rápida acima da dobra */
 .quick{padding:clamp(56px,8vh,96px) 4vw clamp(40px,6vh,72px);border-bottom:1px solid var(--bd)}
@@ -165,8 +177,8 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
 <body>
 <a class="skip" href="#ferramentas">Ir para as ferramentas</a>
 <div id="cur"></div>
-<div id="ios-tip" role="dialog" aria-label="Instalar no iPhone"><button onclick="this.parentNode.style.display='none'">fechar</button>Para instalar: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</div>
-<nav><a class="brand" href="#hero">OpenJus</a><div><a href="#prazos">Prazos</a><a href="#processo">Processos</a><a href="#legislacao">Legislação</a><a href="#bot">Bot</a><a href="#glossario">Glossário</a><a href="#" id="inst-nav" class="inst" hidden>Instalar</a></div></nav>
+<div id="install-tip" role="dialog" aria-label="Como instalar o app"><button onclick="this.parentNode.style.display='none'">fechar</button><span id="install-tip-text">Para instalar: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</span></div>
+<nav><a class="brand" href="#hero">OpenJus</a><div><a href="#prazos">Prazos</a><a href="#processo">Processos</a><a href="#legislacao">Legislação</a><a href="#bot">Bot</a><a href="#glossario">Glossário</a><a href="#camadas">Camadas</a><a href="#apoie">Apoie</a><a href="#" id="inst-nav" class="inst" hidden>Instalar</a></div></nav>
 
 <header class="hero" id="hero" aria-label="Apresentação">
   <!-- Slide 1: balança -->
@@ -214,7 +226,7 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
   <div class="quick-grid">
     <div class="quick-box rv"><h3>Buscar uma lei</h3><p>Ex.: prazo de contestação, defesa do consumidor, LGPD.</p>
       <div class="row"><input id="q-lei" placeholder="O que você procura na lei?" aria-label="Buscar na legislação" onkeydown="if(event.key==='Enter')leisRapido()"><button class="go" onclick="leisRapido()">Buscar</button></div>
-      <pre id="q-lei-out" aria-live="polite">O resultado aparece aqui, com o trecho e a fonte.</pre></div>
+      <div id="q-lei-out" class="lei-out" aria-live="polite">O resultado aparece aqui, com o trecho e a fonte.</div></div>
     <div class="quick-box rv"><h3>Consultar um processo</h3><p>Digite o número CNJ completo. O CPF, se houver, fica mascarado.</p>
       <div class="row"><input id="q-cnj" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ" onkeydown="if(event.key==='Enter')processoRapido()"><button class="go" onclick="processoRapido()">Consultar</button></div>
       <pre id="q-cnj-out" aria-live="polite">O andamento aparece aqui, explicado em linguagem simples.</pre></div>
@@ -264,7 +276,7 @@ footer p{color:var(--mut);margin-top:6vh;font-size:.85rem;max-width:70ch}
     <div class="card rv" id="processo"><span class="eyebrow">DataJud · número CNJ</span><h3>Processo</h3><p>Número CNJ → DataJud (API pública). <span class="need">precisa da API</span></p>
       <input id="c-num" placeholder="NNNNNNN-DD.AAAA.J.TT.OOOO" aria-label="Número CNJ"><button class="go" onclick="processo()">Consultar</button><pre id="c-out" aria-live="polite"></pre></div>
     <div class="card rv" id="legislacao"><span class="eyebrow">Acervo indexado · 6 leis</span><h3>Legislação</h3><p>Busca no acervo indexado. <span class="need">precisa da API</span></p>
-      <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><pre id="l-out" aria-live="polite"></pre></div>
+      <input id="l-q" placeholder="ex.: prazo contestação" aria-label="Busca"><button class="go" onclick="leis()">Buscar</button><div id="l-out" class="lei-out" aria-live="polite"></div></div>
     <div class="card rv" id="glossario"><span class="eyebrow">Offline · 65 termos</span><h3>Juridiquês → português</h3><p>Entenda a movimentação. Funciona offline. <span id="gloss-count" class="need"></span></p>
       <input id="t-q" placeholder="ex.: conclusos para despacho" aria-label="Movimento"><button class="go" onclick="traduzir()">Traduzir</button><pre id="t-out"></pre>
       <details><summary>Ver todos os termos traduzidos</summary><p class="gloss-list" id="gloss-list">Carregando termos…</p></details></div>
@@ -306,10 +318,14 @@ const $=id=>document.getElementById(id);
 const qsApi=new URLSearchParams(location.search).get('api');if(qsApi)localStorage.setItem('oj_api',qsApi);
 const API=(localStorage.getItem('oj_api')||document.querySelector('meta[name=openjus-api]').content||'').replace(/\/$/,'');let API_OK=false;
 const _f=window.fetch.bind(window);window.fetch=(u,o)=>_f(typeof u==='string'&&u.startsWith('/api/')?API+u:u,o);
-// Plano grátis do Render "dorme": tenta acordar a API por até ~70 s.
-(async()=>{const e=$('api-st');if(API)e.textContent='acordando a API (até 1 min)…';
+// Plano grátis do Render "dorme": warm-up em segundo plano ao carregar a página,
+// para a API já estar acordada quando o visitante usar processo, leis ou bot.
+// O selo só diz "API conectada" quando /api/saude respondeu de verdade.
+(async()=>{const e=$('api-st');if(!API){e.textContent='modo navegador (processos e leis precisam da API)';return}
+  e.textContent='API acordando…';
   for(let i=0;i<8&&!API_OK;i++){try{const r=await fetch('/api/saude');API_OK=r.ok}catch(_){ }if(!API_OK)await new Promise(ok=>setTimeout(ok,9000))}
-  e.textContent=API_OK?'API conectada':'modo navegador (processos e leis precisam da API)';if(API_OK)e.classList.add('ok')})();
+  if(API_OK){e.textContent='API conectada';e.classList.add('ok')}
+  else{e.textContent='API offline — prazos e glossário funcionam sem ela';e.classList.add('off')}})();
 // Código Pix para apoiar o projeto (mesmo valor de antes; não aparece escrito na página).
 const PIX='00020126360014br.gov.bcb.pix0114+55119864553905204000053039865802BR5921Thiago Fillipe Soares6009Sao Paulo62230519daqr25678757257972763047D53';
 function copiarPix(){navigator.clipboard.writeText(PIX).then(()=>{$('pix-btn').textContent='Copiado ✓';setTimeout(()=>$('pix-btn').textContent='Copiar Pix',2000)})}
@@ -321,9 +337,34 @@ async function call(id,url,opt){const el=$(id);
     show(id,await r.json())}
   catch(e){show(id,'Não consegui consultar agora ('+e.message+'). Espere 1 minuto e tente de novo — a API gratuita demora para “acordar”. Se persistir, prazos e glossário funcionam sem ela.')}}
 const processo=()=>call('c-out','/api/processo/'+encodeURIComponent($('c-num').value));
-const leis=()=>call('l-out','/api/leis?q='+encodeURIComponent($('l-q').value));
+// Legislação em cartões legíveis: sem score numérico, sem markdown cru e sem
+// "situação não informada" — só título, ementa, trecho limpo e fonte.
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const limpaMd=t=>String(t??'').replace(/`{1,3}[^`]*`{1,3}/g,m=>m.replace(/`/g,''))
+  .replace(/\*\*([^*]+)\*\*/g,'$1').replace(/__([^_]+)__/g,'$1').replace(/\*([^*]+)\*/g,'$1')
+  .replace(/^#{1,6}\s+/gm,'').replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').trim();
+const SITUACAO_VAZIA=v=>!v||/^\s*(não informado|nao informado|n\/a|-)\s*$/i.test(v);
+function renderLeis(id,dados){
+  const el=$(id);
+  if(!Array.isArray(dados)||!dados.length){el.innerHTML='Nenhum trecho encontrado no acervo para essa busca. O acervo tem 6 leis federais — veja a lista na seção Acervo.';return}
+  el.innerHTML=dados.map(t=>{
+    const meta=[];
+    if(t.fonte)meta.push('Fonte: <a href="'+esc(t.fonte)+'" target="_blank" rel="noopener">'+esc(t.fonte)+'</a>');
+    if(t.baixado_em)meta.push('obtido em '+esc(t.baixado_em));
+    if(!SITUACAO_VAZIA(t.situacao))meta.push('Situação: '+esc(t.situacao));
+    return '<article class="lei-res"><h4>'+esc(t.titulo)+(t.urn?' <span>'+esc(t.urn)+'</span>':'')+'</h4>'
+      +(t.ementa?'<p class="lei-ementa">'+esc(t.ementa)+'</p>':'')
+      +'<p>'+esc(limpaMd(t.texto))+'</p>'
+      +(meta.length?'<p class="lei-meta">'+meta.join(' · ')+'</p>':'')+'</article>'}).join('')}
+async function callLeis(id,url){const el=$(id);
+  el.innerHTML='<span class="spin" aria-hidden="true"></span>Consultando… A API gratuita pode demorar até 1 minuto na primeira vez, porque ela “dorme” quando ninguém usa.';
+  try{const r=await Promise.race([fetch(url),new Promise((_,rej)=>setTimeout(()=>rej(new Error('tempo esgotado')),75000))]);
+    if(!r.ok)throw new Error('a API respondeu '+r.status);
+    renderLeis(id,await r.json())}
+  catch(e){el.textContent='Não consegui consultar agora ('+e.message+'). Espere 1 minuto e tente de novo — a API gratuita demora para “acordar”. Se persistir, prazos e glossário funcionam sem ela.'}}
+const leis=()=>callLeis('l-out','/api/leis?q='+encodeURIComponent($('l-q').value));
 // Busca rápida acima da dobra: usa os mesmos endpoints das ferramentas abaixo.
-const leisRapido=()=>{const q=$('q-lei').value.trim();if(!q)return show('q-lei-out','Digite o que você procura na lei.');$('l-q').value=q;call('q-lei-out','/api/leis?q='+encodeURIComponent(q))};
+const leisRapido=()=>{const q=$('q-lei').value.trim();if(!q)return show('q-lei-out','Digite o que você procura na lei.');$('l-q').value=q;callLeis('q-lei-out','/api/leis?q='+encodeURIComponent(q))};
 const processoRapido=()=>{const n=$('q-cnj').value.trim();if(!n)return show('q-cnj-out','Digite o número CNJ completo.');$('c-num').value=n;call('q-cnj-out','/api/processo/'+encodeURIComponent(n))};
 function traduzir(){const q=norm($('t-q').value),k=Object.keys(GLOS).sort((a,b)=>b.length-a.length).find(k=>q.includes(norm(k)));
   show('t-out',k?k[0].toUpperCase()+k.slice(1)+': '+GLOS[k]:'Sem tradução cadastrada para esse termo ainda.')}
@@ -406,7 +447,9 @@ async function responder(q){
   const g=await viaSLM(q);if(g)return g;
   try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensagens:[{role:'user',content:q}]})});
     if(r.ok){const d=await r.json();return d.resposta}}catch(e){}
-  return 'Ainda não sei responder isso. Me ensine: "ensinar: pergunta => resposta".\n\n'+AJUDA}
+  return API_OK
+    ?'Ainda não sei responder isso. Me ensine: "ensinar: pergunta => resposta".\n\n'+AJUDA
+    :'Não consegui falar com a API agora (ela pode estar acordando). Tente de novo em 1 minuto — prazos e glossário funcionam sem ela.\n\n'+AJUDA}
 function addMsg(t,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=t;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
 function sug(b){$('b-q').value=b.textContent;bot()}
 async function bot(){
@@ -442,7 +485,8 @@ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
 if(ios&&!instalado)instBtns.forEach(b=>b.hidden=false);
 instBtns.forEach(b=>b.addEventListener('click',async ev=>{ev.preventDefault();
   if(instEvt){instEvt.prompt();await instEvt.userChoice;instEvt=null;instBtns.forEach(x=>x.hidden=true)}
-  else if(ios)$('ios-tip').style.display='block'}));
+  else{$('install-tip-text').innerHTML=ios?'Para instalar: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.':'Seu navegador não ofereceu a instalação agora. No Chrome, abra o menu ⋮ e toque em “Instalar app” (ou “Adicionar à tela inicial”). Se o app já estiver instalado, o botão não aparece.';
+    $('install-tip').style.display='block'}}));
 // Cursor
 const cur=$('cur');addEventListener('pointermove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px'});
 document.querySelectorAll('a,button,input,.layer').forEach(el=>{el.addEventListener('pointerenter',()=>cur.classList.add('big'));el.addEventListener('pointerleave',()=>cur.classList.remove('big'))});
