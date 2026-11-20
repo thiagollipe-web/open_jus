@@ -1,9 +1,7 @@
 .env
-.venv/
-__pycache__/
-*.pyc
 data/
 *.db
-.pytest_cache/
-.ruff_cache/
-dist/
+# Binários Go gerados pelo build (nunca versionar)
+/openjus-api
+/openjus-index
+api-go/openjus-api

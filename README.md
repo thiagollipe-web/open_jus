@@ -3,18 +3,19 @@
 # ⚖️ OpenJus
 
 **Bot jurídico open source para o Direito brasileiro.**
-Legislação, processos do DataJud/CNJ e prazos do CPC — numa API, num servidor MCP e num site.
+Legislação, processos do DataJud/CNJ e prazos do CPC — numa API e num site.
 
 🌐 **Site:** https://thiagollipe-web.github.io/open_jus — grátis, sem cadastro e sem login.
 
 [![CI](https://github.com/thiagollipe-web/open_jus/actions/workflows/ci.yml/badge.svg)](https://github.com/thiagollipe-web/open_jus/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![Go](https://img.shields.io/badge/go-1.26%2B-blue)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-green)
-![MCP](https://img.shields.io/badge/MCP-compat%C3%ADvel-purple)
 
 </div>
 
 > ⚠️ **Aviso:** ferramenta informativa. Não substitui advogado. Confira feriados locais e a data efetiva da intimação.
+
+> ℹ️ **Backend em Go:** a API foi reescrita de Python (FastAPI) para Go, com o mesmo contrato HTTP — o site não mudou. O servidor MCP (`openjus-mcp`, comando `api-go/cmd/mcp`) também foi reescrito em Go, com as mesmas 5 tools do Python.
 
 ## ✨ O que ele faz
 
@@ -26,14 +27,13 @@ Legislação, processos do DataJud/CNJ e prazos do CPC — numa API, num servido
 | ⏱️ | **Prazos do CPC** | Arts. 219, 220 e 224, com calendário forense offline |
 | 🔒 | **LGPD** | Segredo de justiça não é gravado; CPFs são mascarados (Res. CNJ 331/2020) |
 | 🧠 | **Bot gratuito** | Responde prazos, processos, termos e leis por regras, sem LLM e sem API paga (`POST /api/chat`) |
-| 🤖 | **Servidor MCP** | Use no Claude Desktop, Cursor e outros agentes |
 
 ## 🧱 Arquitetura em 4 camadas
 
 ```
  Usuário / Agente de IA
         │
- ┌──────▼───────┐   API FastAPI · Servidor MCP · Site
+ ┌──────▼───────┐   API Go · Site
  │ 4 Linguagem  │   tradução de movimentos · prazos (CPC)
  ├──────────────┤
  │ 3 Referências│   qual conector do ecossistema usar
@@ -44,12 +44,12 @@ Legislação, processos do DataJud/CNJ e prazos do CPC — numa API, num servido
  └──────────────┘
 ```
 
-| Camada | Módulo | Função |
+| Camada | Pacote Go | Função |
 |---|---|---|
-| 1. Contexto | `leis.py`, `datajud.py`, `cnj.py` | Ingestão da legislação e consulta de processos |
-| 2. Memória | `memoria.py` | Histórico de andamentos e detecção de movimentos novos |
-| 3. Referências | `referencias.py` | Aponta o repositório certo: DataJUD_API_CALLER (lote), api_cnj (pandas), mcp-juridico-brasil (agente), jjesusfilho/tjsp e crawler-jus (e-SAJ/scraping) |
-| 4. Linguagem | `linguagem.py`, `prazos.py` | Tradução de juridiquês e cálculo de prazos |
+| 1. Contexto | `internal/leis`, `internal/datajud`, `internal/cnj` | Ingestão da legislação e consulta de processos |
+| 2. Memória | `internal/memoria` | Histórico de andamentos e detecção de movimentos novos |
+| 3. Referências | `internal/referencias` | Aponta o repositório certo: DataJUD_API_CALLER (lote), api_cnj (pandas), mcp-juridico-brasil (agente), jjesusfilho/tjsp e crawler-jus (e-SAJ/scraping) |
+| 4. Linguagem | `internal/lingua`, `internal/prazos` | Tradução de juridiquês e cálculo de prazos |
 
 **Como cruza leis × processo:** o DataJud devolve classe e assuntos; o OpenJus monta uma busca na legislação *vigente* (campo `situacao` do YAML) e devolve os trechos com URN para citação.
 
@@ -57,23 +57,17 @@ Legislação, processos do DataJud/CNJ e prazos do CPC — numa API, num servido
 
 ```bash
 git clone https://github.com/thiagollipe-web/open_jus && cd open_jus
-uv sync --extra dev
 cp .env.example .env                           # preencha DATAJUD_API_KEY
-git clone https://github.com/ctresb/leis data/leis
-uv run openjus-ingest                          # indexa a legislação
-uv run openjus-api                             # site + API em http://localhost:8000
-uv run pytest                                  # testes
+sh scripts/build_leis_iniciais.sh              # indexa a legislação (6 leis)
+go build -C api-go -o openjus-api ./cmd/api    # compila o servidor (binário em api-go/)
+./api-go/openjus-api                           # site + API em http://localhost:8000
+go test -C api-go ./...                        # testes
+go vet -C api-go ./...                         # verificação estática
 ```
 
 A chave do DataJud é gratuita: veja a [wiki do CNJ](https://datajud-wiki.cnj.jus.br/api-publica/acesso).
 
-### 🤖 Servidor MCP (Claude Desktop / Cursor)
-
-```json
-{ "mcpServers": { "openjus": { "command": "uv", "args": ["run", "--directory", "/caminho/open_jus", "openjus-mcp"] } } }
-```
-
-Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `explicar_movimento`, `qual_conector_usar`.
+O binário é Go puro (SQLite via `modernc.org/sqlite`, sem cgo): um único arquivo, sem dependência de runtime.
 
 ### 🌐 API
 
@@ -82,9 +76,18 @@ Ferramentas: `consultar_processo`, `calcular_prazo`, `buscar_legislacao`, `expli
 | GET | `/api/processo/{cnj}` | Consulta o processo e cruza com a legislação |
 | GET | `/api/cnj/{cnj}` | Valida o número e mostra o tribunal |
 | POST | `/api/prazo` | Calcula prazo (`inicio`, `dias`, `dias_uteis`, `feriados_extras`) |
-| GET | `/api/leis?q=` | Busca na legislação |
+| GET | `/api/leis?q=` | Busca na legislação (`limite` 1–20, `vigentes`) |
 | GET | `/api/traduzir?movimento=` | Explica uma movimentação |
 | GET | `/api/conectores` | Lista os conectores do ecossistema |
+| GET | `/api/status` | Saúde genérica (não revela provedor, modelo nem chaves) |
+| GET | `/api/saude` | Saúde simples (`{"status": "ok"}`) |
+| POST | `/api/chat` | Bot gratuito por regras (sem chave) |
+| POST | `/api/ensinar` | Envia ensinamento (fica pendente de moderação) |
+| POST | `/api/chat-llm` | Bot com Claude (exige `X-OpenJus-Key`) |
+| GET | `/admin/pendentes` | Ensinamentos pendentes e lacunas (exige `X-Admin-Token`) |
+| POST | `/admin/aprovar` | Aprova um ensinamento |
+| POST | `/admin/chaves` | Emite uma chave de acesso |
+| POST | `/admin/creditos` | Adiciona créditos a uma chave |
 
 ## 🆓 Bot gratuito (sem LLM, sem API paga)
 
@@ -128,7 +131,7 @@ Com trechos de lei encontrados, a IA resume ancorada neles. Sem trechos, dá só
 No plano grátis o serviço "dorme" após inatividade (a 1ª resposta demora) e o disco é temporário (ensinamentos e histórico somem a cada reinício).
 
 ### Opcional: bot com LLM pago
-`POST /api/chat-llm` (Claude) é opcional: `pip install openjus[llm]` + `ANTHROPIC_API_KEY`. Exige chave de acesso por usuário (`X-OpenJus-Key`, emitida em `POST /admin/chaves`), tem franquia grátis diária (`FREE_DAILY_TOKENS`) e créditos pré-pagos (`POST /admin/creditos`); sem saldo → 402.
+`POST /api/chat-llm` (Claude) é opcional: basta `ANTHROPIC_API_KEY` (o cliente Claude é HTTP puro, sem SDK). Exige chave de acesso por usuário (`X-OpenJus-Key`, emitida em `POST /admin/chaves`), tem franquia grátis diária (`FREE_DAILY_TOKENS`) e créditos pré-pagos (`POST /admin/creditos`); sem saldo → 402.
 
 ## 📚 Acervo de leis (o que a busca cobre hoje)
 
@@ -143,7 +146,7 @@ A busca cobre **6 leis federais**, com textos do repositório público [`ctresb/
 | Lei nº 13.105/2015 — CPC | Processo civil e prazos |
 | Lei nº 13.709/2018 — LGPD | Proteção de dados pessoais |
 
-**Não é acervo completo e não certifica vigência.** Para ampliar: baixe o texto da mesma fonte (mesmo commit), coloque em `data/leis_iniciais/federal/leis-ordinarias/<ano>/`, registre `bytes` e `sha256` em `data/FONTE_LEIS.json` e rode `sh scripts/build_leis_iniciais.sh` — o script recusa qualquer arquivo fora do manifesto.
+**Não é acervo completo e não certifica vigência.** Para ampliar: baixe o texto da mesma fonte (mesmo commit), coloque em `data/leis_iniciais/federal/leis-ordinarias/<ano>/`, registre `bytes` e `sha256` em `data/FONTE_LEIS.json` e rode `sh scripts/build_leis_iniciais.sh` — o indexador recusa qualquer arquivo fora do manifesto.
 
 ## 📊 Medição (privacidade)
 
@@ -162,7 +165,7 @@ O site usa **Plausible** (sem cookies, sem dados pessoais, sem rastreamento entr
 
 ## 🤝 Contribuindo
 
-Issues e PRs são bem-vindos. Antes de abrir um PR: `uv run ruff check src tests && uv run pytest`.
+Issues e PRs são bem-vindos. Antes de abrir um PR: `go vet -C api-go ./... && go test -C api-go ./...`.
 
 ## 💛 Apoie o projeto
 
@@ -173,14 +176,3 @@ Ajudar também vale: dê uma ⭐ no repositório, divulgue e envie sugestões.
 ## 📄 Licença
 
 [MIT](LICENSE)
-
----
-
-## Deploy da API no Azure App Service (Linux)
-```bash
-az webapp up -n <app> -g <rg> -l brazilsouth --sku B1 --os-type Linux --runtime "PYTHON:3.12"
-az webapp config appsettings set -g <rg> -n <app> --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true DATAJUD_API_KEY=<chave>
-az webapp config set -g <rg> -n <app> --startup-file "PYTHONPATH=src gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 openjus.api:app"
-az webapp config appsettings set -g <rg> -n <app> --settings WEBSITES_PORT=8000
-```
-Rode `az login` antes. O site no GitHub Pages já fala com a API no Render (veja a tag `<meta name="openjus-api">` em `site/index.html`); o Azure abaixo é só uma alternativa de hospedagem da API.
